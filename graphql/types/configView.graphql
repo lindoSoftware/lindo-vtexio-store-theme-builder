@@ -1,0 +1,10 @@
+type ConfigView {
+   websiteEnabled: Boolean
+   substitutionCriteriaEnabled: Boolean
+   incrementerInputEnabled: Boolean
+   addToCartWithSellerEnabled: Boolean
+   cartsByCategories: String
+   productNationalTaxesEnabled: Boolean
+   productDiscountEnabled: Boolean
+   minimumOrderValue: Float
+}

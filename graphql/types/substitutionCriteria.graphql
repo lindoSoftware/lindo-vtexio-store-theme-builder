@@ -1,0 +1,7 @@
+type SubstitutionCriteria {
+    default: Boolean
+    enabled: Boolean
+    name: String
+    notes: Boolean
+    value: Int
+}

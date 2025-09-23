@@ -1,4 +1,4 @@
-import { jsonBuilder } from '../utils/jsonBuilder'
+import { jsonBuilder } from '../utils/builders/jsonBuilder'
 
 export async function deploy(ctx: Context, next: () => Promise<any>) {
   const {

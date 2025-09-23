@@ -5,5 +5,11 @@
   "minReplicas": 2,
   "maxReplicas": 10,
   "workers": 4,
-  "routes": {}
+  "routes": {
+    "deploy": {
+      "path": "/_v/deploy",
+      "public": true,
+      "method": "POST"
+    }
+  }
 }

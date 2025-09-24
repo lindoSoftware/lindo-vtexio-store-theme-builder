@@ -1,5 +1,7 @@
 // import { jsonBuilder } from "../../utils/builders/jsonBuilder"
-import { Command } from '../../typings/command'
+
+import { Command } from "../../typings/command";
+
 
 export class BuildJsonCommand implements Command {
   constructor(private ctx: Context) {}

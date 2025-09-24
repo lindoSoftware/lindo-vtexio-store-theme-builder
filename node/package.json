@@ -10,7 +10,7 @@
     "@vtex/api": "^7.0.0",
     "eslint": "^6.3.0",
     "eslint-config-vtex": "^11.0.0",
-    "lindo.store-theme-builder": "https://dev2--lindo.myvtex.com/_v/private/typings/linked/v1/lindo.store-theme-builder@0.0.1+build1758567155/public/@types/lindo.store-theme-builder",
+    "lindo.store-theme-builder": "https://dev2--lindo.myvtex.com/_v/private/typings/linked/v1/lindo.store-theme-builder@0.0.1+build1758749441/public/@types/lindo.store-theme-builder",
     "prettier": "^1.18.2",
     "typescript": "5.5.3"
   },

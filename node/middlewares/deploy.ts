@@ -1,31 +1,29 @@
-import { jsonBuilder } from '../utils/builders/jsonBuilder'
+import { Command } from '../typings/command'
+import { BuildJsonCommand } from './commands/BuildJsonCommand'
+import { Clients } from '../clients'
+import { ServiceContext } from '@vtex/api'
+import { DeployState } from '../typings/context'
+
+type DeployContext = ServiceContext<Clients, DeployState>
+type Context = DeployContext & { body: any; clients: any; state: DeployState }
 
 export async function deploy(ctx: Context, next: () => Promise<any>) {
-  const {
-    clients: { github },
-  } = ctx
-
-  const { owner, repo, params } = ctx.body as {
-    owner: string
-    repo: string
-    params: Record<string, any>
-  }
-
   try {
-    // 1. Construir JSON dinámico
-    const newConfig = jsonBuilder(params)
+    const commands: Command[] = [
+      new BuildJsonCommand(ctx),
+      // new UpdateFileCommand(ctx),
+      // new TriggerWorkflowCommand(ctx),
+    ]
 
-    // 2. Guardar archivo en GitHub (ejemplo: settings.json en la raíz del repo)
-    await github.updateFile(owner, repo, 'settings.json', JSON.stringify(newConfig, null, 2), 'chore: update settings.json')
-
-    // 3. Disparar workflow para que GitHub Actions haga el `vtex link`
-    await github.triggerWorkflow(owner, repo)
+    for (const command of commands) {
+      await command.execute()
+    }
 
     ctx.status = 200
     ctx.body = { message: 'Deploy iniciado correctamente 🚀' }
   } catch (err: any) {
     ctx.status = 500
-    ctx.body = { error: err.message }
+    ctx.body = { error: err }
   }
 
   await next()

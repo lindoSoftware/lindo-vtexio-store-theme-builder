@@ -1,2 +1,52 @@
+# ============================
+# General
+# ============================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.swo
+
+# ============================
+# Node.js (root + service)
+# ============================
 node/node_modules/
 node/yarn.lock
+node/.eslintcache
+
+# ============================
+# React (storefront)
+# ============================
+react/node_modules/
+react/.eslintcache
+react/dist/
+react/.next/
+react/out/
+react/yarn-error.log
+
+# Yarn v2 Berry cache (por si acaso)
+.react/.yarn/cache/
+.react/.pnp.*
+
+# ============================
+# VTEX IO
+# ============================
+.vtex/
+manifest.lock
+
+# ============================
+# Build / coverage / misc
+# ============================
+coverage/
+dist/
+build/
+.tmp/
+.cache/
+
+# ============================
+# Env files (manejalos local)
+# ============================
+.env
+.env.local
+.env.*.local

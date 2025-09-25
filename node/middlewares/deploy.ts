@@ -21,7 +21,7 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
 
     ctx.status = 200
     ctx.body = { message: 'Deploy iniciado correctamente 🚀' }
-  } catch (err: any) {
+  } catch (err) {
     ctx.status = 500
     ctx.body = { error: err }
   }

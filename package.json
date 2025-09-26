@@ -4,7 +4,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "lint": "eslint --ext js,jsx,ts,tsx .",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json}\"",
+    "dev:setup": "vtex setup && npm install",
+    "lint:fix": "eslint --ext .ts,.tsx src --fix"
   },
   "husky": {
     "hooks": {

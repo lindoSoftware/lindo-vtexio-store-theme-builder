@@ -1,21 +1,14 @@
 import { Command } from '../typings/command'
 import { readRequestBodyAsJSON } from '../utils/middleware.helper'
 import { BuildJsonCommand } from './commands/BuildJsonCommand'
+import { SectionStrategyFactory } from './strategies/SectionStrategyFactory'
 
 export async function deploy(ctx: Context, next: () => Promise<any>) {
   try {
-    let params: { section: string }
-    params = await readRequestBodyAsJSON(ctx.req)
-
-    let data
-    switch (params.section) {
-      case 'home-page':
-        data = await ctx.clients.strapiClient.getHomePageContent()
-        console.log(JSON.stringify(data.homePage.content, null, 2))
-        break
-      default:
-        break
-    }
+    const params = await readRequestBodyAsJSON<{ section: string }>(ctx.req)
+    const strategy = SectionStrategyFactory.create(params.section)
+    const data = await strategy.getData(ctx)
+    ctx.body = { data }
 
     const commands: Command[] = [
       new BuildJsonCommand(ctx),
@@ -28,12 +21,9 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
     }
 
     ctx.status = 200
-    ctx.body = {
-      message: `Deploy iniciado correctamente 🚀 para section: ${params.section}`,
-    }
-  } catch (err) {
+  } catch (err: any) {
     ctx.status = 500
-    ctx.body = { error: err }
+    ctx.body = { error: err.message ?? err }
   }
 
   await next()

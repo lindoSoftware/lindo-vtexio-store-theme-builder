@@ -1,4 +1,4 @@
-export async function readRequestBodyAsJSON(req: Context['req']) {
+export async function readRequestBodyAsJSON<T = any>(req: Context['req']): Promise<T> {
   const rawBody = await new Promise<string>((resolve, reject) => {
     let data = ''
     req.on('data', chunk => (data += chunk))
@@ -6,5 +6,6 @@ export async function readRequestBodyAsJSON(req: Context['req']) {
     req.on('error', err => reject(err))
   })
 
-  return JSON.parse(rawBody)
+  return JSON.parse(rawBody) as T
 }
+

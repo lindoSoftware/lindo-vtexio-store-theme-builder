@@ -6,7 +6,7 @@
   "description": "",
   "builders": {
     "node": "7.x",
-    "graphql": "1.0"
+    "graphql": "2.0"
   },
   "scripts": {
     "prereleasy": "bash lint.sh"

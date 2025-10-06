@@ -1,7 +1,9 @@
 import { ExternalClient, InstanceOptions, IOContext } from '@vtex/api'
-import { HOME_PAGE_QUERY } from '../utils/graphql/queries'
+import { CUSTOM_PAGE_QUERY, HOME_PAGE_QUERY, NAVBAR_QUERY } from '../utils/graphql/queries'
 import ENV from '../env'
 import { HomePageData } from '../typings/homepage-response'
+import { NavbarData } from '../typings/navbar-response'
+import { CustomPagesData } from '../typings/custompage-response'
 
 /**
  * Interfaz genérica para cualquier respuesta GraphQL
@@ -53,5 +55,13 @@ export class StrapiContentClient extends ExternalClient {
 
   public async getHomePageContent(): Promise<HomePageData> {
     return this.request<HomePageData>(HOME_PAGE_QUERY)
+  }
+
+  public async getNavbarContent(): Promise<NavbarData> {
+    return this.request<NavbarData>(NAVBAR_QUERY)
+  }
+
+  public async getCustomPageContent(variables?: any): Promise<CustomPagesData> {
+    return this.request<CustomPagesData>(CUSTOM_PAGE_QUERY, variables)
   }
 }

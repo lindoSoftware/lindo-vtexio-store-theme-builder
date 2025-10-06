@@ -26,3 +26,28 @@ export const HOME_PAGE_QUERY = `
       }
     }
   `
+
+export const NAVBAR_QUERY = `
+query Links {
+  navbar {
+    links {
+      text
+      url
+      icon
+    }
+  }
+}
+`
+
+export const CUSTOM_PAGE_QUERY = `
+query CustomPages($filters: CustomPageFiltersInput) {
+  customPages(filters: $filters) {
+    content {
+      ... on ComponentSharedRichText {
+        id
+        text
+      }
+    }
+  }
+}
+`

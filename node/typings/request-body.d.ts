@@ -1,5 +1,6 @@
+import { SectionDataMap } from './sections-map'
 export interface DeployRequestBody {
-  section: string
+  section: keyof SectionDataMap // 🔥 solo secciones válidas
   variables?: Variables | null
 }
 

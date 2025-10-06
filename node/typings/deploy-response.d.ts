@@ -1,4 +1,4 @@
-export interface DeployResponseSuccess<TData = unknown> {
+export interface DeployResponseSuccess<TData = unknown, TVariables = unknown> {
   success: true
   section: string
   variables?: TVariables | null
@@ -10,6 +10,6 @@ export interface DeployResponseError {
   error: string
 }
 
-export type DeployResponse<TData = unknown> =
-  | DeployResponseSuccess<TData>
+export type DeployResponse<TData = unknown, TVariables = unknown> =
+  | DeployResponseSuccess<TData, TVariables>
   | DeployResponseError

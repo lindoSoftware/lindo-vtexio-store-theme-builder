@@ -8,18 +8,12 @@ import { SectionStrategyFactory } from './strategies/SectionStrategyFactory'
 export async function deploy(ctx: Context, next: () => Promise<any>) {
   try {
     const params = await readRequestBodyAsJSON<DeployRequestBody>(ctx.req)
+
     const strategy = SectionStrategyFactory.create(params.section)
     const data = await strategy.getData(ctx, params.variables)
 
-    const commands: Command[] = [
-      new BuildJsonCommand(ctx),
-      // new TriggerWorkflowCommand(ctx),
-      // new UpdateFileCommand(ctx),
-    ]
-
-    for (const command of commands) {
-      await command.execute()
-    }
+    const commands: Command[] = [new BuildJsonCommand(ctx)]
+    for (const command of commands) await command.execute()
 
     const response: DeployResponse = {
       success: true,

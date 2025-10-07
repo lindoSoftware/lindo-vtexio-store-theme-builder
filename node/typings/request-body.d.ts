@@ -4,7 +4,7 @@ export interface DeployRequestBody {
   variables?: Variables | null
 }
 
-export interface Variables {
+export interface Variables extends Record<string, unknown> {
   filters: Filters
 }
 

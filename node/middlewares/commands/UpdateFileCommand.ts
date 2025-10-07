@@ -1,14 +1,10 @@
 import { Command } from '../../typings/command'
+import { SectionDataMap } from '../../typings/sections-map'
 
-export class UpdateFileCommand implements Command {
-  constructor(private ctx: Context) {}
-  //   async execute() {
-  //     const { owner, repo } = this.ctx.body
-  //     const { github } = this.ctx.clients
-  //     const newConfig = this.ctx.state.newConfig
-  //     await github.updateFile(owner, repo, 'settings.json', JSON.stringify(newConfig, null, 2), 'chore: update settings.json')
-  //   }
-  async execute() {
-    console.log('Executing UpdateFileCommand', this.ctx.body)
+export class UpdateFileCommand<
+  TSection extends keyof SectionDataMap = keyof SectionDataMap
+> extends Command<TSection> {
+  async execute(): Promise<void> {
+    console.log('🧱 Construyendo JSON para data:', this.data)
   }
 }

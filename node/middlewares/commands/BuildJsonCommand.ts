@@ -1,10 +1,12 @@
-// import { jsonBuilder } from "../../utils/builders/jsonBuilder"
-
 import { Command } from '../../typings/command'
+import { SectionDataMap } from '../../typings/sections-map'
+import { BuildJsonStrategyFactory } from '../strategies/build/BuildJsonStrategyFactory'
 
-export class BuildJsonCommand implements Command {
-  constructor(private ctx: Context) {}
-  async execute() {
-    console.log('Executing JSON....', this.ctx.body)
+export class BuildJsonCommand<
+  TSection extends keyof SectionDataMap = keyof SectionDataMap
+> extends Command<TSection> {
+  async execute(): Promise<void> {
+    const strategy = BuildJsonStrategyFactory.create(this.section)
+    await strategy.build(this.data)
   }
 }

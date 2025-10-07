@@ -1,14 +1,10 @@
 import { Command } from '../../typings/command'
+import { SectionDataMap } from '../../typings/sections-map'
 
-export class TriggerWorkflowCommand implements Command {
-  constructor(private ctx: Context) {}
-  //   async execute() {
-  //     const { owner, repo } = this.ctx.body
-  //     const { github } = this.ctx.clients
-  //     await github.triggerWorkflow(owner, repo)
-  //   }
-
-  async execute() {
-    console.log('Executing TriggerWorkflowCommand', this.ctx.body)
+export class TriggerWorkflowCommand<
+  TSection extends keyof SectionDataMap = keyof SectionDataMap
+> extends Command<TSection> {
+  async execute(): Promise<void> {
+    console.log('🧱 Construyendo JSON para data:', this.data)
   }
 }

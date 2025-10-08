@@ -1,6 +1,6 @@
 import { Command } from '../../typings/command'
 import { SectionDataMap } from '../../typings/sections-map'
-import { BuildJsonStrategyFactory } from '../strategies/build/BuildJsonStrategyFactory'
+import { BuildJsonStrategyFactory } from '../strategies/builds/BuildJsonStrategyFactory'
 
 export class BuildJsonCommand<
   TSection extends keyof SectionDataMap = keyof SectionDataMap

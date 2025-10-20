@@ -1,3 +1,6 @@
+import { GeneratedFile } from '../../commands/BuildJsonCommand'
+
 export interface BuildJsonStrategy<TData> {
-  build(data: TData): Promise<void>
+  readonly section: string
+  build(data: TData): Promise<GeneratedFile[]>
 }

@@ -19,6 +19,13 @@
         "host": "ioadmin.lindo.la",
         "path": "*"
       }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "api.github.com",
+        "path": "*"
+      }
     }
   ],
   "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema"

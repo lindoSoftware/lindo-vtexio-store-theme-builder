@@ -15,6 +15,5 @@ export class BuildJsonCommand<
   async execute(): Promise<void> {
     const strategy = BuildJsonStrategyFactory.create(this.section)
     this.generatedFiles = await strategy.build(this.data)
-    console.log('archivos generados: ', this.generatedFiles);
   }
 }

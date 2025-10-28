@@ -50,7 +50,7 @@ export interface ImageResource {
 export interface ClusterBlock {
   appName: 'Cluster'
   title: string | null
-  type: 'Collection' | 'Category' | string
+  type: 'Collection' | 'Category'
   typeNumber: number
   beginning: string // ISO 8601
   expiration: string // ISO 8601

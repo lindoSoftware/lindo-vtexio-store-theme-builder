@@ -1,6 +1,6 @@
 import { IOClients } from '@vtex/api'
-import { GitHubClient } from './github'
 import { StrapiContentClient } from './strapi'
+import GitHubClient from './github'
 
 export class Clients extends IOClients {
   public get github() {

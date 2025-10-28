@@ -1,45 +1,102 @@
-import { ExternalClient, InstanceOptions, IOContext } from '@vtex/api'
+import { ExternalClient } from '@vtex/api'
+import { Octokit } from '@octokit/rest'
+import type { IOContext, InstanceOptions, IOResponse } from '@vtex/api'
+import ENV from '../env'
 
-export class GitHubClient extends ExternalClient {
+export default class GitHubClient extends ExternalClient {
+  private octokit: Octokit
+
   constructor(context: IOContext, options?: InstanceOptions) {
-    super('https://api.github.com', context, options)
+    super(ENV.GIT_API_URL ?? '', context, options)
+    this.octokit = new Octokit({
+      auth: ENV.GITHUB_TOKEN,
+    })
   }
 
-  public async updateFile(owner: string, repo: string, path: string, content: string, message: string, branch = 'main') {
-    const token = process.env.GITHUB_TOKEN as string
-    const url = `/repos/${owner}/${repo}/contents/${path}`
+  // Obtener contenido de un archivo
+  private async getFileContent(path: string): Promise<{ sha?: string; exists: boolean }> {
+    try {
+      const response = await this.octokit.repos.getContent({
+        owner: ENV.GIT_OWNER ?? '',
+        repo: ENV.GIT_REPOSITORY ?? '',
+        path,
+        ref: ENV.GIT_BRANCH ?? 'main',
+      })
 
-    return this.http.put(
-      url,
-      {
-        message,
+      if ('sha' in response.data) {
+        return { sha: response.data.sha, exists: true }
+      }
+
+      return { exists: false }
+    } catch (error: any) {
+      if (error.status === 404) {
+        return { exists: false }
+      }
+      throw error
+    }
+  }
+
+  // Crear o actualizar un archivo (según exista o no)
+  public async createOrUpdateFile(
+    path: string,
+    content: string,
+    message?: string
+  ): Promise<IOResponse<any>> {
+    try {
+      const fileInfo = await this.getFileContent(path)
+      const isUpdate = fileInfo.exists
+      const sha = fileInfo.sha
+
+      const response = await this.octokit.repos.createOrUpdateFileContents({
+        owner: ENV.GIT_OWNER ?? '',
+        repo: ENV.GIT_REPOSITORY ?? '',
+        path,
+        message: message || (isUpdate ? 'Automated update file' : 'Creating new file'),
         content: Buffer.from(content).toString('base64'),
-        branch,
-      },
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github.v3+json',
+        branch: ENV.GIT_BRANCH ?? 'main',
+        ...(isUpdate && { sha }),
+      })
+
+      return {
+        status: 200,
+        data: {
+          action: isUpdate ? 'updated' : 'created',
+          ...response.data,
         },
+        headers: response.headers as IOResponse<string>['headers'],
       }
-    )
+    } catch (error: any) {
+      return {
+        status: error?.status || 500,
+        data: { error },
+        headers: {},
+      }
+    }
   }
 
-  public async triggerWorkflow(owner: string, repo: string) {
-    const token = process.env.GITHUB_TOKEN as string
-    const url = `/repos/${owner}/${repo}/dispatches`
+  // Eliminar un archivo
+  public async deleteFile(path: string, sha: string): Promise<IOResponse<any>> {
+    try {
+      const response = await this.octokit.repos.deleteFile({
+        owner: ENV.GIT_OWNER ?? '',
+        repo: ENV.GIT_REPOSITORY ?? '',
+        path,
+        message: 'Deleting file',
+        sha,
+        branch: ENV.GIT_BRANCH ?? 'main',
+      })
 
-    return this.http.post(
-      url,
-      {
-        event_type: 'deploy-from-vtex',
-      },
-      {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github.v3+json',
-        },
+      return {
+        status: 200,
+        data: '',
+        headers: response.headers as IOResponse<string>['headers'],
       }
-    )
+    } catch (error: any) {
+      return {
+        status: error?.status || 500,
+        data: { error },
+        headers: {},
+      }
+    }
   }
 }

@@ -4,6 +4,7 @@ import { DeployRequestBody } from '../typings/request-body'
 import { readRequestBodyAsJSON } from '../utils/middleware.helper'
 import { BuildJsonCommand } from './commands/BuildJsonCommand'
 import { SectionStrategyFactory } from './strategies/cms/SectionStrategyFactory'
+import { CommitJsonCommand } from './commands/CommitJsonCommand'
 
 export async function deploy(ctx: Context, next: () => Promise<any>) {
   try {
@@ -12,7 +13,12 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
     const strategy = SectionStrategyFactory.create(params.section)
     const data = await strategy.getData(ctx, params.variables)
 
-    const commands: Command[] = [new BuildJsonCommand(params.section, data)]
+    const buildCommand = new BuildJsonCommand(params.section, data)
+    await buildCommand.execute()
+
+    const commitCommand = new CommitJsonCommand(params.section, data, ctx, buildCommand.generatedFiles)
+
+    const commands: Command[] = [commitCommand]
 
     for (const command of commands) await command.execute()
 

@@ -75,13 +75,11 @@ export class HomePageBuildJsonStrategy
     const content = JSON.stringify(layoutJson, null, 2)
     const files: GeneratedFile[] = [
       {
-        filename: 'home3.jsonc',
+        path: 'store/blocks/pages/home',
+        filename: 'home.jsonc',
         content,
       },
     ]
-
-    console.log('✅ Generated home-page.jsonc:')
-    console.log(JSON.stringify(layoutJson, null, 2))
 
     return files
   }

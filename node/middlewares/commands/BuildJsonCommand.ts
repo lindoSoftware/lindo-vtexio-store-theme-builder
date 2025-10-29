@@ -3,6 +3,7 @@ import type { SectionDataMap } from '../../typings/sections-map'
 import { BuildJsonStrategyFactory } from '../strategies/builds/BuildJsonStrategyFactory'
 
 export interface GeneratedFile {
+  path: string
   filename: string
   content: string
 }

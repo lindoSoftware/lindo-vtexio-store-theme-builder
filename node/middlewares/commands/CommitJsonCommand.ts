@@ -22,10 +22,9 @@ export class CommitJsonCommand<
 
   async execute(): Promise<void> {
     for (const file of this.files) {
-
       try {
         const res = await this.ctx.clients.github.createOrUpdateFile(
-          `store/blocks/pages/home/${file.filename}`,
+          `${file.path}/${file.filename}`,
           file.content
         )
 
@@ -35,8 +34,6 @@ export class CommitJsonCommand<
       } catch (err: any) {
         throw err
       }
-
-      console.log(`✅ Archivo commiteado`)
     }
   }
 }

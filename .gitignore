@@ -13,11 +13,9 @@ Thumbs.db
 # ============================
 node_modules/
 node/node_modules/
-node/yarn.lock
 node/.eslintcache
 node/node_modules/.yarn-integrity
 node/package.json
-node/yarn.lock
 
 # ============================
 # React (storefront)

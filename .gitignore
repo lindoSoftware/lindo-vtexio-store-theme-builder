@@ -54,6 +54,3 @@ build/
 .env
 .env.local
 .env.*.local
-node/env.ts
-
-yarn.lock

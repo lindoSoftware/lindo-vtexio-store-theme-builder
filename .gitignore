@@ -12,7 +12,7 @@ Thumbs.db
 # Node.js (root + service)
 # ============================
 node_modules/
-node/node_modules/
+node/node_modules/*
 node/.eslintcache
 node/node_modules/.yarn-integrity
 node/package.json

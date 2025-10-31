@@ -33,7 +33,7 @@
     "title": "service settings",
     "type": "object",
     "properties": {
-      "github_token": {
+      "githubToken": {
         "title": "GITHUB TOKEN",
         "description": "Enter your Github Token (ghp_aDNpnTl1G...)",
         "type": "string"

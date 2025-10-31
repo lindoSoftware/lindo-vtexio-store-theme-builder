@@ -8,13 +8,17 @@ export default class GitHubClient extends ExternalClient {
 
   constructor(context: IOContext, options?: InstanceOptions) {
     super(ENV.GIT_API_URL ?? '', context, options)
-    this.octokit = new Octokit({
-      auth: ENV.GITHUB_TOKEN,
-    })
+    this.octokit = new Octokit({ auth: '' })
+  }
+
+  public async init(token: string) {
+    this.octokit = new Octokit({ auth: token })
   }
 
   // Obtener contenido de un archivo
-  private async getFileContent(path: string): Promise<{ sha?: string; exists: boolean }> {
+  private async getFileContent(
+    path: string
+  ): Promise<{ sha?: string; exists: boolean }> {
     try {
       const response = await this.octokit.repos.getContent({
         owner: ENV.GIT_OWNER ?? '',
@@ -51,7 +55,8 @@ export default class GitHubClient extends ExternalClient {
         owner: ENV.GIT_OWNER ?? '',
         repo: ENV.GIT_REPOSITORY ?? '',
         path,
-        message: message || (isUpdate ? 'Automated update file' : 'Creating new file'),
+        message:
+          message || (isUpdate ? 'Automated update file' : 'Creating new file'),
         content: Buffer.from(content).toString('base64'),
         branch: ENV.GIT_BRANCH ?? 'main',
         ...(isUpdate && { sha }),

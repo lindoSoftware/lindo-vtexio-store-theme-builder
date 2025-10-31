@@ -1,5 +1,5 @@
 # ============================
-# General
+# 🧩 General
 # ============================
 .DS_Store
 Thumbs.db
@@ -9,35 +9,41 @@ Thumbs.db
 *.swo
 
 # ============================
-# Node.js (root + service)
+# ⚙️ Node.js (service)
 # ============================
+# Ignorar dependencias locales, cachés y compilados
 /node_modules/
 /node/node_modules/
-node/.eslintcache
-node/node_modules/.yarn-integrity
+/node/.eslintcache
+/node/node_modules/.yarn-integrity
+
+# ⚠️ Mantener estos archivos porque los usa VTEX Builder Hub
+!/node/package.json
+!/node/yarn.lock
+!/node/tsconfig.json
 
 # ============================
-# React (storefront)
+# 💅 React (storefront)
 # ============================
-react/node_modules/
-react/.eslintcache
-react/dist/
-react/.next/
-react/out/
-react/yarn-error.log
+/react/node_modules/
+/react/.eslintcache
+/react/dist/
+/react/.next/
+/react/out/
+/react/yarn-error.log
 
 # Yarn v2 Berry cache (por si acaso)
-.react/.yarn/cache/
-.react/.pnp.*
+/react/.yarn/cache/
+/react/.pnp.*
 
 # ============================
-# VTEX IO
+# 🧰 VTEX IO
 # ============================
 .vtex/
 manifest.lock
 
 # ============================
-# Build / coverage / misc
+# 📦 Build / coverage / misc
 # ============================
 coverage/
 dist/
@@ -46,8 +52,15 @@ build/
 .cache/
 
 # ============================
-# Env files (manejalos local)
+# 🔐 Env files (solo local)
 # ============================
 .env
 .env.local
 .env.*.local
+
+# ============================
+# 🧪 Testing / Tools
+# ============================
+jest-coverage/
+.vscode/
+.idea/

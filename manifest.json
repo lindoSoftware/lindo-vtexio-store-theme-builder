@@ -28,5 +28,16 @@
       }
     }
   ],
-  "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema"
+  "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema",
+  "settingsSchema": {
+    "title": "service settings",
+    "type": "object",
+    "properties": {
+      "github_token": {
+        "title": "GITHUB TOKEN",
+        "description": "Enter your Github Token (ghp_aDNpnTl1G...)",
+        "type": "string"
+      }
+    }
+  }
 }

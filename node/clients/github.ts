@@ -51,6 +51,35 @@ export default class GitHubClient extends ExternalClient {
       const isUpdate = fileInfo.exists
       const sha = fileInfo.sha
 
+      // ✅ Si el archivo existe, obtener su contenido actual
+      if (isUpdate) {
+        const { data } = await this.octokit.repos.getContent({
+          owner: ENV.GIT_OWNER ?? '',
+          repo: ENV.GIT_REPOSITORY ?? '',
+          path,
+          ref: ENV.GIT_BRANCH ?? 'main',
+        })
+
+        if ('content' in data && typeof data.content === 'string') {
+          const remoteContent = Buffer.from(data.content, 'base64').toString(
+            'utf8'
+          )
+
+          // 🔍 Comparar el contenido actual con el nuevo
+          if (remoteContent.trim() === content.trim()) {
+            return {
+              status: 200,
+              data: {
+                action: 'skipped',
+                reason: 'No changes detected',
+              },
+              headers: {},
+            }
+          }
+        }
+      }
+
+      // ✅ Si llegó hasta acá, o el archivo no existe o cambió
       const response = await this.octokit.repos.createOrUpdateFileContents({
         owner: ENV.GIT_OWNER ?? '',
         repo: ENV.GIT_REPOSITORY ?? '',

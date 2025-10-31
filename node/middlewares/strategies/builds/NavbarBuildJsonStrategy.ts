@@ -12,7 +12,7 @@ export class NavbarBuildJsonStrategy implements BuildJsonStrategy<NavbarData> {
         path: 'store/blocks/pages/navbar',
         filename: 'navbar.jsonc',
         content,
-      }
+      },
     ]
   }
 }

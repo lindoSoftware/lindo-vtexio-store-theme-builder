@@ -2,7 +2,9 @@ import type { BuildJsonStrategy } from './BuildJsonStrategy'
 import type { CustomPagesData } from '../../../typings/custompage-response'
 import { GeneratedFile } from '../../commands/BuildJsonCommand'
 
-export class CustomPageBuildJsonStrategy implements BuildJsonStrategy<CustomPagesData> {
+export class CustomPageBuildJsonStrategy
+  implements BuildJsonStrategy<CustomPagesData>
+{
   readonly section = 'custom-page' as const
 
   async build(data: CustomPagesData): Promise<GeneratedFile[]> {
@@ -12,7 +14,7 @@ export class CustomPageBuildJsonStrategy implements BuildJsonStrategy<CustomPage
         path: 'store/blocks/pages/custom',
         filename: 'any.jsonc',
         content,
-      }
+      },
     ]
   }
 }

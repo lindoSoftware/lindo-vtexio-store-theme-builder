@@ -7,6 +7,12 @@ export class CustomPageBuildJsonStrategy implements BuildJsonStrategy<CustomPage
 
   async build(data: CustomPagesData): Promise<GeneratedFile[]> {
     const content = `// CustomPage JSONC\n${JSON.stringify(data, null, 2)}`
-    return [{ filename: 'custom-page.jsonc', content }]
+    return [
+      {
+        path: 'store/blocks/pages/custom',
+        filename: 'any.jsonc',
+        content,
+      }
+    ]
   }
 }

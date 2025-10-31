@@ -7,6 +7,12 @@ export class NavbarBuildJsonStrategy implements BuildJsonStrategy<NavbarData> {
 
   async build(data: NavbarData): Promise<GeneratedFile[]> {
     const content = `// Navbar JSONC\n${JSON.stringify(data, null, 2)}`
-    return [{ filename: 'navbar.jsonc', content }]
+    return [
+      {
+        path: 'store/blocks/pages/navbar',
+        filename: 'navbar.jsonc',
+        content,
+      }
+    ]
   }
 }

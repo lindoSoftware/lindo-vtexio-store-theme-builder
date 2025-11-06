@@ -16,10 +16,13 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
     const buildCommand = new BuildJsonCommand(params.section, data)
     await buildCommand.execute()
 
-    const commitCommand = new CommitJsonCommand(params.section, data, ctx, buildCommand.generatedFiles)
-
+    const commitCommand = new CommitJsonCommand(
+      params.section,
+      data,
+      ctx,
+      buildCommand.generatedFiles
+    )
     const commands: Command[] = [commitCommand]
-
     for (const command of commands) await command.execute()
 
     const response: DeployResponse = {

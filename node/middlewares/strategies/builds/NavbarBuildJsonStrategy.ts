@@ -6,13 +6,28 @@ export class NavbarBuildJsonStrategy implements BuildJsonStrategy<NavbarData> {
   readonly section = 'navbar' as const
 
   async build(data: NavbarData): Promise<GeneratedFile[]> {
-    const content = `// Navbar JSONC\n${JSON.stringify(data, null, 2)}`
-    return [
+    const layoutJson: Record<string, any> = {
+      'custom-navbar': {
+        props: { items: [] },
+      },
+    }
+
+    for (const item of data.navbar.links) {
+      layoutJson['custom-navbar'].props.items.push({
+        text: item.text,
+        link: item.url,
+      })
+    }
+
+    const content = JSON.stringify(layoutJson, null, 2)
+    const files: GeneratedFile[] = [
       {
-        path: 'store/blocks/pages/navbar',
-        filename: 'navbar.jsonc',
+        path: 'store/blocks/header',
+        filename: 'custom-navbar.jsonc',
         content,
       },
     ]
+
+    return files
   }
 }

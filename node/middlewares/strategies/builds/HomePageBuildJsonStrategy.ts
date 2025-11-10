@@ -1,7 +1,7 @@
+import env from '../../../env'
 import type { BuildJsonStrategy } from './BuildJsonStrategy'
 import type { HomePageData } from '../../../typings/homepage-response'
 import { GeneratedFile } from '../../commands/BuildJsonCommand'
-import env from '../../../env'
 import { isWithinDateRange } from '../../../utils/isWithinDateRange'
 
 export class HomePageBuildJsonStrategy
@@ -19,15 +19,14 @@ export class HomePageBuildJsonStrategy
 
     let sliderIndex = 0
     let clusterIndex = 0
+
     for (const section of data.homePage.content) {
       switch (section.appName) {
         case 'Slider': {
-          // Filtrar banners válidos según fecha
           const validBanners = section.banners.filter((b) =>
             isWithinDateRange(b.beginning, b.expiration)
           )
 
-          // Si no hay banners válidos, no hacemos nada
           if (validBanners.length === 0) break
 
           sliderIndex++
@@ -60,6 +59,13 @@ export class HomePageBuildJsonStrategy
         }
 
         case 'Cluster': {
+          const validSection = isWithinDateRange(
+            section.beginning,
+            section.expiration
+          )
+
+          if (!validSection) break
+
           clusterIndex++
           const clusterRow = `flex-layout.row#cluster-${clusterIndex}`
           const productList = `list-context.product-list#cluster-${clusterIndex}`
@@ -73,8 +79,12 @@ export class HomePageBuildJsonStrategy
             },
           }
 
-          const props: Record<string, any> = { title: section.title ?? '' }
+          const props: Record<string, any> = {}
+          if (section.title && section.title.trim() !== '') {
+            props.title = section.title
+          }
           props[section.type.toLowerCase()] = section.typeNumber.toString()
+
           layoutJson[productList] = {
             blocks: ['product-summary.shelf#cluster'],
             children: ['slider-layout#cluster'],

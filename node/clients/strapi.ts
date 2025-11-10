@@ -15,7 +15,7 @@ interface GraphQLResponse<T> {
 
 export class StrapiContentClient extends ExternalClient {
   constructor(ctx: IOContext, opts?: InstanceOptions) {
-    super(ENV.STRAPI_GRAPHQL_URL, ctx, {
+    super(`${ENV.STRAPI_URL}/graphql/`, ctx, {
       ...opts,
       headers: {
         'Content-Type': 'application/json',

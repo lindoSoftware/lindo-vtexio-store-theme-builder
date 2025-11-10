@@ -1,4 +1,8 @@
 {
+  "name": "vtexio-node-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
   "dependencies": {
     "co-body": "^6.0.0",
     "ramda": "^0.26.1",
@@ -9,17 +13,34 @@
     "@types/node": "^20.0.0",
     "@types/ramda": "types/npm-ramda#dist",
     "@vtex/api": "^7.0.0",
-    "eslint": "^6.3.0",
-    "eslint-config-vtex": "^11.0.0",
-    "prettier": "^1.18.2",
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "lindo.store-theme-builder": "https://dev2--lindo.myvtex.com/_v/private/typings/linked/v1/lindo.store-theme-builder@0.0.1+build1762787891/public/@types/lindo.store-theme-builder",
+    "ts-jest": "^29.1.1",
     "typescript": "5.5.3"
   },
-  "resolutions": {
-    "**/**/lodash": "^4.17.19"
-  },
   "scripts": {
-    "lint": "tsc --noEmit --pretty && eslint -c .eslintrc.json --fix './**/*.ts'"
+    "test": "jest"
   },
-  "version": "0.7.2",
-  "license": "UNLICENSED"
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.test.json"
+      }
+    },
+    "roots": [
+      "<rootDir>"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "verbose": true
+  }
 }

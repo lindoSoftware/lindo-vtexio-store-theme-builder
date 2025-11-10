@@ -1,6 +1,8 @@
 import type { BuildJsonStrategy } from './BuildJsonStrategy'
 import type { HomePageData } from '../../../typings/homepage-response'
 import { GeneratedFile } from '../../commands/BuildJsonCommand'
+import env from '../../../env'
+import { isWithinDateRange } from '../../../utils/isWithinDateRange'
 
 export class HomePageBuildJsonStrategy
   implements BuildJsonStrategy<HomePageData>
@@ -20,6 +22,14 @@ export class HomePageBuildJsonStrategy
     for (const section of data.homePage.content) {
       switch (section.appName) {
         case 'Slider': {
+          // Filtrar banners válidos según fecha
+          const validBanners = section.banners.filter((b) =>
+            isWithinDateRange(b.beginning, b.expiration)
+          )
+
+          // Si no hay banners válidos, no hacemos nada
+          if (validBanners.length === 0) break
+
           sliderIndex++
           const bannerRow = `flex-layout.row#banner-${sliderIndex}`
           const imageList = `list-context.image-list#banner-${sliderIndex}`
@@ -31,13 +41,17 @@ export class HomePageBuildJsonStrategy
           }
 
           layoutJson[imageList] = {
-            children: ['slider-layout#banner'],
+            children: ['slider-layout#slider'],
             props: {
               height: section.height,
               preload: section.preload,
-              images: section.banners.map((b) => ({
-                image: b.desktopImage.url,
-                mobileImage: b.mobileImage.url,
+              images: validBanners.map((b) => ({
+                image: env.STRAPI_URL + b.desktopImage.url,
+                mobileImage: env.STRAPI_URL + b.mobileImage.url,
+                link: {
+                  url: b.link ?? '',
+                  openNewTab: false,
+                },
               })),
             },
           }

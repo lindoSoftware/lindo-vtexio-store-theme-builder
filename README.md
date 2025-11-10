@@ -49,4 +49,8 @@ vtex setup
 vtex link
 ```
 
+## DOC
+
+https://developers.vtex.com/docs/apps/vtex.slider-layout
+https://developers.vtex.com/docs/apps/vtex.store-image
 

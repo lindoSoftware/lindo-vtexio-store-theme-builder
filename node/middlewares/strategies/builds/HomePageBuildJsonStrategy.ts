@@ -1,8 +1,9 @@
 import env from '../../../env'
 import type { BuildJsonStrategy } from './BuildJsonStrategy'
-import type { HomePageData } from '../../../typings/homepage-response'
+import type { ClusterBlock, HomePageData, SliderBlock } from '../../../typings/homepage-response'
 import { GeneratedFile } from '../../commands/BuildJsonCommand'
 import { isWithinDateRange } from '../../../utils/isWithinDateRange'
+import { HOMEPAGE_APPNAMES } from '../../../utils/homepage-constants'
 
 export class HomePageBuildJsonStrategy
   implements BuildJsonStrategy<HomePageData>
@@ -22,8 +23,9 @@ export class HomePageBuildJsonStrategy
 
     for (const section of data.homePage.content) {
       switch (section.appName) {
-        case 'Slider': {
-          const validBanners = section.banners.filter((b) =>
+        case HOMEPAGE_APPNAMES.SLIDER: {
+          const sliderSection = section as SliderBlock
+          const validBanners = sliderSection.banners.filter((b) =>
             isWithinDateRange(b.beginning, b.expiration)
           )
 
@@ -42,8 +44,8 @@ export class HomePageBuildJsonStrategy
           layoutJson[imageList] = {
             children: ['slider-layout#slider'],
             props: {
-              height: section.height,
-              preload: section.preload,
+              height: sliderSection.height,
+              preload: sliderSection.preload,
               images: validBanners.map((b) => ({
                 image: env.STRAPI_URL + b.desktopImage.url,
                 mobileImage: env.STRAPI_URL + b.mobileImage.url,
@@ -58,10 +60,11 @@ export class HomePageBuildJsonStrategy
           break
         }
 
-        case 'Cluster': {
+        case HOMEPAGE_APPNAMES.CLUSTER: {
+          const clusterSection = section as ClusterBlock
           const validSection = isWithinDateRange(
-            section.beginning,
-            section.expiration
+            clusterSection.beginning,
+            clusterSection.expiration
           )
 
           if (!validSection) break
@@ -80,10 +83,10 @@ export class HomePageBuildJsonStrategy
           }
 
           const props: Record<string, any> = {}
-          if (section.title && section.title.trim() !== '') {
-            props.title = section.title
+          if (clusterSection.title && clusterSection.title.trim() !== '') {
+            props.title = clusterSection.title
           }
-          props[section.type.toLowerCase()] = section.typeNumber.toString()
+          props[clusterSection.type.toLowerCase()] = clusterSection.typeNumber.toString()
 
           layoutJson[productList] = {
             blocks: ['product-summary.shelf#cluster'],

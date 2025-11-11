@@ -1,30 +1,53 @@
 export const HOME_PAGE_QUERY = `
-    query HomePage {
-      homePage {
-        content {
-          ... on ComponentSharedSlider {
-            height
-            preload
-            banners {
-              desktopImage { url }
-              mobileImage { url }
-              link
-              beginning
-              expiration
+  query HomePage {
+    homePage {
+      content {
+        ... on ComponentSharedSlider {
+          height
+          preload
+          banners {
+            desktopImage {
+              url
             }
-            appName
-          }
-          ... on ComponentSharedCluster {
-            title
-            type
-            typeNumber
+            mobileImage {
+              url
+            }
+            link
             beginning
             expiration
-            appName
+          }
+          appName
+        }
+        ... on ComponentSharedCluster {
+          title
+          type
+          typeNumber
+          beginning
+          expiration
+          appName
+        }
+        ... on ComponentSharedMultipleStaticBanner {
+          appName
+          staticBanners {
+            name
+            beginning
+            expiration
+            columnGap
+            rowGap
+            banners {
+              image {
+                url
+              }
+              mobileImage {
+                url
+              }
+              link
+            }
           }
         }
       }
     }
+  }
   `
 
 export const NAVBAR_QUERY = `

@@ -17,13 +17,16 @@ export interface HomePageData {
 /**
  * Unión discriminada de bloques
  */
-export type HomePageContentBlock = SliderBlock | ClusterBlock
+export type HomePageContentBlock =
+  | SliderBlock
+  | ClusterBlock
+  | MultipleStaticBannerBlock
 
 /**
  * Bloque tipo "Slider" (carrusel de banners)
  */
 export interface SliderBlock {
-  appName: 'Slider'
+  appName: typeof HOMEPAGE_APPNAMES.SLIDER
   height: number
   preload: boolean
   banners: Banner[]
@@ -40,18 +43,50 @@ export interface Banner {
   expiration: string // ISO 8601
 }
 
-export interface ImageResource {
-  url: string
-}
-
 /**
  * Bloque tipo "Cluster" (colecciones o categorías)
  */
 export interface ClusterBlock {
-  appName: 'Cluster'
+  appName: typeof HOMEPAGE_APPNAMES.CLUSTER
   title: string | null
-  type: 'Collection' | 'Category'
+  type: ClusterType
   typeNumber: number
   beginning: string // ISO 8601
   expiration: string // ISO 8601
+}
+
+/**
+ * Bloque tipo "MultipleStaticBanner"
+ */
+export interface MultipleStaticBannerBlock {
+  appName: typeof HOMEPAGE_APPNAMES.MULTIPLE_STATIC_BANNER
+  staticBanners: StaticBannerGroup[]
+}
+
+/**
+ * Grupo de banners estáticos (una fila o conjunto de banners)
+ */
+export interface StaticBannerGroup {
+  name: string
+  beginning: string // ISO 8601
+  expiration: string // ISO 8601
+  columnGap: number
+  rowGap: number
+  banners: StaticBanner[]
+}
+
+/**
+ * Banner individual dentro de un bloque "MultipleStaticBanner"
+ */
+export interface StaticBanner {
+  image: ImageResource
+  mobileImage: ImageResource | null
+  link: string
+}
+
+/**
+ * Recurso de imagen genérico
+ */
+export interface ImageResource {
+  url: string
 }

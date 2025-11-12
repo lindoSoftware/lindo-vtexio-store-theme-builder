@@ -1,6 +1,6 @@
 import env from '../../../env'
 import type { BuildJsonStrategy } from './BuildJsonStrategy'
-import type { ClusterBlock, HomePageData, SliderBlock } from '../../../typings/homepage-response'
+import type { ClusterBlock, HomePageData, MultipleStaticBannerBlock, SliderBlock } from '../../../typings/homepage-response'
 import { GeneratedFile } from '../../commands/BuildJsonCommand'
 import { isWithinDateRange } from '../../../utils/isWithinDateRange'
 import { HOMEPAGE_APPNAMES } from '../../../utils/homepage-constants'
@@ -93,6 +93,57 @@ export class HomePageBuildJsonStrategy
             children: ['slider-layout#cluster'],
             props,
           }
+
+          break
+        }
+
+        case HOMEPAGE_APPNAMES.MULTIPLE_STATIC_BANNER: {
+          const sliderSection = section as MultipleStaticBannerBlock
+          const staticBanners = sliderSection.staticBanners.filter((b) =>
+            isWithinDateRange(b.beginning, b.expiration)
+          )
+
+          if (staticBanners.length === 0) break
+
+          staticBanners.forEach((bannerGroup, index) => {
+            const staticBannerRow = `flex-layout.row#static-banner-${index + 1}`
+            const staticBannerList = `list-context.static-banner-list#static-banner-${index + 1}`
+            const sliderLayoutPropsRow = `slider-layout#static-banner-${index + 1}`
+
+            layoutJson['store.home'].blocks.push(staticBannerRow)
+
+            layoutJson[staticBannerRow] = {
+              children: [staticBannerList],
+            }
+
+            layoutJson[staticBannerList] = {
+              children: [sliderLayoutPropsRow],
+              props: {
+                banners: bannerGroup.banners.map((b) => ({
+                  image: env.STRAPI_URL + b.image.url,
+                  mobileImage: b.mobileImage
+                    ? env.STRAPI_URL + b.mobileImage.url
+                    : null,
+                  link: {
+                    url: b.link ?? '',
+                          openNewTab: false,
+                  },
+                })),
+              }
+            }
+            layoutJson[sliderLayoutPropsRow] = {
+              props: {
+                infinity: true,
+                showPaginationDots: "never",
+                itemsPerPage: {
+                  desktop: bannerGroup.banners.length,
+                  tablet: 1,
+                  phone: 1,
+                  blockclass: `mh${bannerGroup.columnGap}-mv${bannerGroup.rowGap}`
+                }
+              }
+            }
+          })
 
           break
         }

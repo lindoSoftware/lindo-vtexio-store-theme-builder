@@ -1,6 +1,11 @@
 import env from '../../../env'
 import type { BuildJsonStrategy } from './BuildJsonStrategy'
-import type { ClusterBlock, HomePageData, MultipleStaticBannerBlock, SliderBlock } from '../../../typings/homepage-response'
+import type {
+  ClusterBlock,
+  HomePageData,
+  MultipleStaticBannerBlock,
+  SliderBlock,
+} from '../../../typings/homepage-response'
 import { GeneratedFile } from '../../commands/BuildJsonCommand'
 import { isWithinDateRange } from '../../../utils/isWithinDateRange'
 import { HOMEPAGE_APPNAMES } from '../../../utils/homepage-constants'
@@ -86,7 +91,8 @@ export class HomePageBuildJsonStrategy
           if (clusterSection.title && clusterSection.title.trim() !== '') {
             props.title = clusterSection.title
           }
-          props[clusterSection.type.toLowerCase()] = clusterSection.typeNumber.toString()
+          props[clusterSection.type.toLowerCase()] =
+            clusterSection.typeNumber.toString()
 
           layoutJson[productList] = {
             blocks: ['product-summary.shelf#cluster'],
@@ -107,8 +113,12 @@ export class HomePageBuildJsonStrategy
 
           staticBanners.forEach((bannerGroup, index) => {
             const staticBannerRow = `flex-layout.row#static-banner-${index + 1}`
-            const staticBannerList = `list-context.static-banner-list#static-banner-${index + 1}`
-            const sliderLayoutPropsRow = `slider-layout#static-banner-${index + 1}`
+            const staticBannerList = `list-context.image-list#static-banner-${
+              index + 1
+            }`
+            const sliderLayoutPropsRow = `slider-layout#static-banner-${
+              index + 1
+            }`
 
             layoutJson['store.home'].blocks.push(staticBannerRow)
 
@@ -119,29 +129,30 @@ export class HomePageBuildJsonStrategy
             layoutJson[staticBannerList] = {
               children: [sliderLayoutPropsRow],
               props: {
-                banners: bannerGroup.banners.map((b) => ({
+                preload: true,
+                images: bannerGroup.banners.map((b) => ({
                   image: env.STRAPI_URL + b.image.url,
                   mobileImage: b.mobileImage
                     ? env.STRAPI_URL + b.mobileImage.url
-                    : null,
+                    : env.STRAPI_URL + b.image.url,
                   link: {
                     url: b.link ?? '',
-                          openNewTab: false,
+                    openNewTab: false,
                   },
                 })),
-              }
+              },
             }
             layoutJson[sliderLayoutPropsRow] = {
               props: {
                 infinity: true,
-                showPaginationDots: "never",
+                showPaginationDots: 'never',
+                blockclass: `mh${bannerGroup.columnGap}-mv${bannerGroup.rowGap}`,
                 itemsPerPage: {
                   desktop: bannerGroup.banners.length,
                   tablet: 1,
                   phone: 1,
-                  blockclass: `mh${bannerGroup.columnGap}-mv${bannerGroup.rowGap}`
-                }
-              }
+                },
+              },
             }
           })
 

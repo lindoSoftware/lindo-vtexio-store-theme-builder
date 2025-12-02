@@ -45,6 +45,29 @@ export const HOME_PAGE_QUERY = `
             }
           }
         }
+        ... on ComponentSharedMultipleImageSelector {
+          id
+          imageSelectors {
+            name
+            title
+            beginning
+            expiration
+            itemsPerPageDesktop
+            itemsPerPageTablet
+            itemsPerPageMobile
+            images {
+              link
+              text
+              image {
+                url
+              }
+              mobileImage {
+                url
+              }
+            }
+          }
+          appName
+        }
       }
     }
   }

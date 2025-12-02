@@ -21,6 +21,7 @@ export type HomePageContentBlock =
   | SliderBlock
   | ClusterBlock
   | MultipleStaticBannerBlock
+  | MultipleImageSelectorBlock
 
 /**
  * Bloque tipo "Slider" (carrusel de banners)
@@ -72,16 +73,17 @@ export interface StaticBannerGroup {
   expiration: string // ISO 8601
   columnGap: number
   rowGap: number
-  banners: StaticBanner[]
+  banners: ImageItem[]
 }
 
 /**
  * Banner individual dentro de un bloque "MultipleStaticBanner"
  */
-export interface StaticBanner {
+export interface ImageItem {
   image: ImageResource
   mobileImage: ImageResource | null
   link: string
+  text: string | null
 }
 
 /**
@@ -89,4 +91,26 @@ export interface StaticBanner {
  */
 export interface ImageResource {
   url: string
+}
+
+/**
+ * Bloque tipo "MultipleImageSelector"
+ */
+export interface MultipleImageSelectorBlock {
+  appName: typeof HOMEPAGE_APPNAMES.MULTIPLE_IMAGE_SELECTOR
+  imageSelectors: ImageSelector[]
+}
+
+/**
+ * Selector de imágenes individual
+ */
+export interface ImageSelector {
+  name: string
+  title: string
+  beginning: string // ISO 8601
+  expiration: string // ISO 8601
+  itemsPerPageDesktop: number
+  itemsPerPageTablet: number
+  itemsPerPageMobile: number
+  images: ImageItem[]
 }

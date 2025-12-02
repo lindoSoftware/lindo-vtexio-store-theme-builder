@@ -3,6 +3,7 @@ import type { BuildJsonStrategy } from './BuildJsonStrategy'
 import type {
   ClusterBlock,
   HomePageData,
+  MultipleImageSelectorBlock,
   MultipleStaticBannerBlock,
   SliderBlock,
 } from '../../../typings/homepage-response'
@@ -153,6 +154,103 @@ export class HomePageBuildJsonStrategy
                   phone: 1,
                 },
               },
+            }
+          })
+
+          break
+        }
+
+        case HOMEPAGE_APPNAMES.MULTIPLE_IMAGE_SELECTOR: {
+          const selectorSection = section as MultipleImageSelectorBlock
+          const selectors = selectorSection.imageSelectors.filter((b) =>
+            isWithinDateRange(b.beginning, b.expiration)
+          )
+
+          if (selectors.length === 0) break
+
+          selectors.forEach((bannerGroup, index) => {
+            if (bannerGroup.title) {
+              const titleBlock = `flex-layout.row#image-selector-title-${
+                index + 1
+              }`
+              const richTextSelector = `rich-text#image-selector-title-${
+                index + 1
+              }`
+              layoutJson['store.home'].blocks.push(titleBlock)
+              layoutJson[titleBlock] = {
+                children: [richTextSelector],
+              }
+              layoutJson[richTextSelector] = {
+                props: {
+                  text: bannerGroup.title,
+                  blockClass: 'image-selector-title',
+                },
+              }
+            }
+
+            const selectorRow = `flex-layout.row#image-selector-slider-${
+              index + 1
+            }`
+            const sliderSelector = `slider-layout#image-selector-${index + 1}`
+
+            layoutJson['store.home'].blocks.push(selectorRow)
+
+            layoutJson[selectorRow] = {
+              children: [sliderSelector],
+            }
+
+            layoutJson[sliderSelector] = {
+              props: {
+                infinity: true,
+                showPaginationDots: 'never',
+                itemsPerPage: {
+                  desktop: bannerGroup.itemsPerPageDesktop,
+                  tablet: bannerGroup.itemsPerPageTablet,
+                  phone: bannerGroup.itemsPerPageMobile,
+                },
+              },
+              children: bannerGroup.images.map((b, i) => {
+                const col = `flex-layout.col#item${i + 1}`
+                const link = `link#item${i + 1}`
+
+                layoutJson[col] = {
+                  props: {
+                    horizontalAlign: 'center',
+                    verticalAlign: 'middle',
+                  },
+                  children: [link],
+                }
+
+                const childrenLink = []
+                if (b.image) {
+                  const imageBlock = `image#img${i + 1}`
+                  layoutJson[imageBlock] = {
+                    props: {
+                      src: env.STRAPI_URL + b.image.url,
+                    },
+                  }
+                  childrenLink.push(imageBlock)
+                }
+                if (b.text) {
+                  const textBlock = `rich-text#title${i + 1}`
+                  layoutJson[textBlock] = {
+                    props: {
+                      text: b.text,
+                      blockClass: 'imageText',
+                    },
+                  }
+                  childrenLink.push(textBlock)
+                }
+
+                layoutJson[link] = {
+                  children: childrenLink,
+                  props: {
+                    href: b.link ?? '',
+                  },
+                }
+
+                return col
+              }),
             }
           })
 

@@ -2,6 +2,7 @@ import { LayoutBuilder } from '../../../typings/builder'
 import { HOMEPAGE_APPNAMES } from '../../../utils/homepage-constants'
 import { BlockProcessor } from './BlockProcessor'
 import { ClusterBlockProcessor } from './ClusterBlockProcessor'
+import { MultipleImageSelectorProcessor } from './MultipleImageSelectorProcessor'
 import { MultipleStaticBannerProcessor } from './MultipleStaticBannerProcessor'
 import { SliderBlockProcessor } from './SliderBlockProcessor'
 
@@ -18,7 +19,7 @@ export class BlockProcessorFactory {
       ],
       [
         HOMEPAGE_APPNAMES.MULTIPLE_IMAGE_SELECTOR,
-        new MultipleStaticBannerProcessor(layoutBuilder),
+        new MultipleImageSelectorProcessor(layoutBuilder),
       ],
     ])
   }

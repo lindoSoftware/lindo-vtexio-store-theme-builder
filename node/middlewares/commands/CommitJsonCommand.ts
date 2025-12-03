@@ -82,8 +82,6 @@ export class CommitJsonCommand<
       throw res.data.error
     }
 
-    console.log(res)
-
     this.ctx.vtex.logger.info({
       message: `[CommitJsonCommand] File ${filePath} ${res.data.action} successfully (status: ${res.status})`,
     })

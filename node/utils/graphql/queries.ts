@@ -88,9 +88,75 @@ query Links {
 export const CUSTOM_PAGE_QUERY = `
 query CustomPages($filters: CustomPageFiltersInput) {
   customPages(filters: $filters) {
+    slug
+    path
     content {
+      ... on ComponentSharedGroupCard {
+        name
+        appName
+        cards {
+          content {
+            ... on ComponentSharedCardTextBlock {
+              appName
+              variant
+              content
+            }
+            ... on ComponentSharedCardImageBlock {
+              appName
+              images {
+                url
+              }
+            }
+          }
+        }
+      }
+      ... on ComponentSharedTab {
+        appName
+        title
+        icon
+        cards {
+          content {
+            ... on ComponentSharedCardTextBlock {
+              appName
+              variant
+              content
+            }
+            ... on ComponentSharedCardImageBlock {
+              appName
+              images {
+                url
+              }
+            }
+          }
+        }
+      }
+      ... on ComponentSharedTabGroup {
+        appName
+        title
+        icon
+        tabs {
+          appName
+          title
+          icon
+          cards {
+            content {
+              ... on ComponentSharedCardTextBlock {
+                appName
+                variant
+                content
+              }
+              ... on ComponentSharedCardImageBlock {
+                appName
+                images {
+                  url
+                }
+              }
+            }
+          }
+        }
+      }
       ... on ComponentSharedRichText {
-        id
+        appName
         text
       }
     }

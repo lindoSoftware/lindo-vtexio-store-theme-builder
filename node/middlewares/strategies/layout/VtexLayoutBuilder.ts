@@ -1,15 +1,15 @@
-// ============================================================================
-// LAYOUT BUILDER (Gestiona el objeto layoutJson)
-// ============================================================================
-
 import { BlockBuilder, LayoutBuilder } from '../../../typings/builder'
 
 export class VtexLayoutBuilder implements LayoutBuilder {
-  private layout: Record<string, any> = {
-    'store.home': {
-      parent: { storeWrapper: 'storeWrapper' },
-      blocks: [],
-    },
+  private layout: Record<string, any> = {}
+
+  initializePage(pageKey: string): void {
+    if (!this.layout[pageKey]) {
+      this.layout[pageKey] = {
+        parent: { storeWrapper: 'storeWrapper' },
+        blocks: [],
+      }
+    }
   }
 
   addBlock(parentKey: string, blockName: string): void {

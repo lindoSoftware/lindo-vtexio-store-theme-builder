@@ -13,6 +13,9 @@ export class HomePageBuildJsonStrategy
     const layoutBuilder = new VtexLayoutBuilder()
     const processorFactory = new BlockProcessorFactory(layoutBuilder)
 
+    // Inicializar la página home
+    layoutBuilder.initializePage('store.home')
+
     // Procesar cada sección
     for (const section of data.homePage.content) {
       const processor = processorFactory.getProcessor(section.appName)

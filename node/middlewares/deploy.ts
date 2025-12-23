@@ -16,6 +16,9 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
     const buildCommand = new BuildJsonCommand(params.section, data)
     await buildCommand.execute()
 
+    console.log(JSON.stringify(buildCommand.generatedFiles, null, 2))
+    return
+
     const commitCommand = new CommitJsonCommand(
       params.section,
       data,

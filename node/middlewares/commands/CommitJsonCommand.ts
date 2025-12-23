@@ -69,6 +69,13 @@ export class CommitJsonCommand<
       message: `[CommitJsonCommand] Syncing file: ${filePath}`,
     })
 
+    // Manejo especial para routes.json
+    if (file.filename === 'routes.json') {
+      await this.commitRoutesFile(filePath, file.content)
+      return
+    }
+
+    // Commit normal para otros archivos
     const res = await this.ctx.clients.github.createOrUpdateFile(
       filePath,
       file.content
@@ -85,5 +92,75 @@ export class CommitJsonCommand<
     this.ctx.vtex.logger.info({
       message: `[CommitJsonCommand] File ${filePath} ${res.data.action} successfully (status: ${res.status})`,
     })
+  }
+
+  /**
+   * Maneja el merge de routes.json con el contenido existente
+   */
+  private async commitRoutesFile(
+    filePath: string,
+    newContent: string
+  ): Promise<void> {
+    try {
+      // Intentar obtener el contenido actual de routes.json
+      const existingContent = await this.ctx.clients.github.getFileContent(
+        filePath
+      )
+
+      let mergedRoutes: Record<string, any> = {}
+
+      // Si el archivo existe, hacer merge
+      if (existingContent.exists && existingContent.content) {
+        const existingRoutes = JSON.parse(existingContent.content)
+        const newRoutes = JSON.parse(newContent)
+
+        // Merge: las nuevas rutas sobrescriben las existentes si hay conflicto
+        mergedRoutes = {
+          ...existingRoutes,
+          ...newRoutes,
+        }
+
+        this.ctx.vtex.logger.info({
+          message: `[CommitJsonCommand] Merging routes.json - Existing: ${
+            Object.keys(existingRoutes).length
+          }, New: ${Object.keys(newRoutes).length}, Final: ${
+            Object.keys(mergedRoutes).length
+          }`,
+        })
+      } else {
+        // Si no existe, usar el contenido nuevo directamente
+        mergedRoutes = JSON.parse(newContent)
+        this.ctx.vtex.logger.info({
+          message: `[CommitJsonCommand] Creating new routes.json with ${
+            Object.keys(mergedRoutes).length
+          } routes`,
+        })
+      }
+
+      // Commit del contenido mergeado
+      const finalContent = JSON.stringify(mergedRoutes, null, 2)
+      const res = await this.ctx.clients.github.createOrUpdateFile(
+        filePath,
+        finalContent
+      )
+
+      if (res?.data?.error) {
+        this.ctx.vtex.logger.error({
+          message: `[CommitJsonCommand] Error syncing routes.json`,
+          error: res.data.error,
+        })
+        throw res.data.error
+      }
+
+      this.ctx.vtex.logger.info({
+        message: `[CommitJsonCommand] routes.json ${res.data.action} successfully (status: ${res.status})`,
+      })
+    } catch (error: any) {
+      this.ctx.vtex.logger.error({
+        message: `[CommitJsonCommand] Error processing routes.json`,
+        error: error.message,
+      })
+      throw error
+    }
   }
 }

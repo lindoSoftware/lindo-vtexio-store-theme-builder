@@ -15,8 +15,36 @@ export default class GitHubClient extends ExternalClient {
     this.octokit = new Octokit({ auth: token })
   }
 
-  // Obtener contenido de un archivo
-  private async getFileContent(
+  // Obtener contenido de un archivo (método público para usar en CommitJsonCommand)
+  public async getFileContent(
+    path: string
+  ): Promise<{ sha?: string; exists: boolean; content?: string }> {
+    try {
+      const response = await this.octokit.repos.getContent({
+        owner: ENV.GIT_OWNER ?? '',
+        repo: ENV.GIT_REPOSITORY ?? '',
+        path,
+        ref: ENV.GIT_BRANCH ?? 'main',
+      })
+
+      if ('sha' in response.data && 'content' in response.data) {
+        const content = Buffer.from(response.data.content, 'base64').toString(
+          'utf8'
+        )
+        return { sha: response.data.sha, exists: true, content }
+      }
+
+      return { exists: false }
+    } catch (error: any) {
+      if (error.status === 404) {
+        return { exists: false }
+      }
+      throw error
+    }
+  }
+
+  // Obtener solo información básica del archivo (privado, para uso interno)
+  private async getFileInfo(
     path: string
   ): Promise<{ sha?: string; exists: boolean }> {
     try {
@@ -47,7 +75,7 @@ export default class GitHubClient extends ExternalClient {
     message?: string
   ): Promise<IOResponse<any>> {
     try {
-      const fileInfo = await this.getFileContent(path)
+      const fileInfo = await this.getFileInfo(path)
       const isUpdate = fileInfo.exists
       const sha = fileInfo.sha
 

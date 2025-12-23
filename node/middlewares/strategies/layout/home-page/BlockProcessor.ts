@@ -1,8 +1,4 @@
-// ============================================================================
-// BLOCK PROCESSORS (Cada uno maneja un tipo de bloque)
-// ============================================================================
-
-import { BlockBuilder, LayoutBuilder } from "../../../typings/builder"
+import { BlockBuilder, LayoutBuilder } from "../../../../typings/builder"
 
 export abstract class BlockProcessor<T> {
   constructor(protected layoutBuilder: LayoutBuilder) {}

@@ -1,6 +1,6 @@
-import { ClusterBlock } from '../../../typings/homepage-response'
-import { isWithinDateRange } from '../../../utils/isWithinDateRange'
-import { BlockProcessor } from './BlockProcessor'
+import { ClusterBlock } from "../../../../typings/homepage-response"
+import { isWithinDateRange } from "../../../../utils/isWithinDateRange"
+import { BlockProcessor } from "./BlockProcessor"
 
 export class ClusterBlockProcessor extends BlockProcessor<ClusterBlock> {
   private counter = 0

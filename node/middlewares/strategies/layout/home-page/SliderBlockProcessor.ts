@@ -1,7 +1,7 @@
-import { SliderBlock } from '../../../typings/homepage-response'
-import { isWithinDateRange } from '../../../utils/isWithinDateRange'
+import env from '../../../../env'
+import { SliderBlock } from '../../../../typings/homepage-response'
+import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
-import env from '../../../env'
 
 export class SliderBlockProcessor extends BlockProcessor<SliderBlock> {
   private counter = 0

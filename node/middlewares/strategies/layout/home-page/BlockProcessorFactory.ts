@@ -1,5 +1,5 @@
-import { LayoutBuilder } from '../../../typings/builder'
-import { HOMEPAGE_APPNAMES } from '../../../utils/homepage-constants'
+import { LayoutBuilder } from '../../../../typings/builder'
+import { HOMEPAGE_APPNAMES } from '../../../../utils/homepage-constants'
 import { BlockProcessor } from './BlockProcessor'
 import { ClusterBlockProcessor } from './ClusterBlockProcessor'
 import { MultipleImageSelectorProcessor } from './MultipleImageSelectorProcessor'

@@ -46,6 +46,32 @@ export class CustomPageBuildJsonStrategy
       })
     }
 
+    // Generar archivo routes.json con todas las rutas
+    const routesFile = await this.buildRoutesFile(data.customPages)
+    generatedFiles.push(routesFile)
+
     return generatedFiles
+  }
+
+  private async buildRoutesFile(
+    pages: CustomPagesData['customPages']
+  ): Promise<GeneratedFile> {
+    const routes: Record<string, { path: string }> = {}
+
+    // Agregar todas las rutas de las páginas custom
+    for (const page of pages) {
+      const pageKey = `store.custom#${page.slug}`
+      routes[pageKey] = {
+        path: `/${page.path}`,
+      }
+    }
+
+    const content = JSON.stringify(routes, null, 2)
+
+    return {
+      path: 'store',
+      filename: 'routes.json',
+      content,
+    }
   }
 }

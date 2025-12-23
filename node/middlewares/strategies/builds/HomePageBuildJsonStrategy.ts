@@ -2,7 +2,7 @@ import type { BuildJsonStrategy } from './BuildJsonStrategy'
 import type { HomePageData } from '../../../typings/homepage-response'
 import { GeneratedFile } from '../../commands/BuildJsonCommand'
 import { VtexLayoutBuilder } from '../layout/VtexLayoutBuilder'
-import { BlockProcessorFactory } from '../layout/BlockProcessorFactory'
+import { BlockProcessorFactory } from '../layout/home-page/BlockProcessorFactory'
 
 export class HomePageBuildJsonStrategy
   implements BuildJsonStrategy<HomePageData>

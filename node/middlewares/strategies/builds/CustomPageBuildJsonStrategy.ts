@@ -16,7 +16,8 @@ export class CustomPageBuildJsonStrategy
     for (const page of data.customPages) {
       const layoutBuilder = new VtexLayoutBuilder()
       const processorFactory = new CustomPageBlockProcessorFactory(
-        layoutBuilder
+        layoutBuilder,
+        page.slug
       )
 
       // Cambiar 'store.home' por el identificador de la página custom

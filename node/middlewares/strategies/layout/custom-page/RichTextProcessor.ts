@@ -7,7 +7,7 @@ export class RichTextProcessor extends CustomPageBlockProcessor<ComponentSharedR
     pageKey: string,
     index: number
   ): void {
-    const richTextBlock = `rich-text#custom-${index}`
+    const richTextBlock = this.generateBlockName('rich-text', `${index}`)
 
     this.addToPage(pageKey, richTextBlock)
 

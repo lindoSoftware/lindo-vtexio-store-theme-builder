@@ -8,8 +8,14 @@ export class TabGroupProcessor extends CustomPageBlockProcessor<ComponentSharedT
     pageKey: string,
     index: number
   ): void {
-    const tabGroupRow = `flex-layout.row#tab-group-${index}`
-    const tabGroupLayout = `tab-layout#tab-group-${index}`
+    const tabGroupRow = this.generateBlockName(
+      'flex-layout.row',
+      `tab-group-${index}`
+    )
+    const tabGroupLayout = this.generateBlockName(
+      'tab-layout',
+      `tab-group-${index}`
+    )
 
     this.addToPage(pageKey, tabGroupRow)
 
@@ -22,8 +28,14 @@ export class TabGroupProcessor extends CustomPageBlockProcessor<ComponentSharedT
     })
 
     // Crear tab layout principal
-    const tabListBlock = `tab-list#tab-group-${index}`
-    const tabContentBlock = `tab-content#tab-group-${index}`
+    const tabListBlock = this.generateBlockName(
+      'tab-list',
+      `tab-group-${index}`
+    )
+    const tabContentBlock = this.generateBlockName(
+      'tab-content',
+      `tab-group-${index}`
+    )
 
     this.createBlock(tabGroupLayout, {
       blockName: tabGroupLayout,
@@ -36,7 +48,10 @@ export class TabGroupProcessor extends CustomPageBlockProcessor<ComponentSharedT
 
     // Crear tab list items (headers de todos los tabs)
     const tabListItems = section.tabs.map((tab, tabIndex) => {
-      const tabListItem = `tab-list.item#tab-group-${index}-item-${tabIndex}`
+      const tabListItem = this.generateBlockName(
+        'tab-list.item',
+        `tab-group-${index}-item-${tabIndex}`
+      )
 
       this.createBlock(tabListItem, {
         blockName: tabListItem,
@@ -57,7 +72,10 @@ export class TabGroupProcessor extends CustomPageBlockProcessor<ComponentSharedT
 
     // Crear tab content items (contenido de cada tab)
     const tabContentItems = section.tabs.map((tab, tabIndex) => {
-      const tabContentItem = `tab-content.item#tab-group-${index}-item-${tabIndex}`
+      const tabContentItem = this.generateBlockName(
+        'tab-content.item',
+        `tab-group-${index}-item-${tabIndex}`
+      )
 
       const cardChildren = this.processTabCards(tab.cards, index, tabIndex)
 
@@ -86,7 +104,10 @@ export class TabGroupProcessor extends CustomPageBlockProcessor<ComponentSharedT
     const children: string[] = []
 
     cards.forEach((card, cardIndex) => {
-      const cardRow = `flex-layout.row#tab-group-${groupIndex}-tab-${tabIndex}-card-${cardIndex}`
+      const cardRow = this.generateBlockName(
+        'flex-layout.row',
+        `tab-group-${groupIndex}-tab-${tabIndex}-card-${cardIndex}`
+      )
       children.push(cardRow)
 
       const cardChildren = this.processCardContent(
@@ -118,7 +139,10 @@ export class TabGroupProcessor extends CustomPageBlockProcessor<ComponentSharedT
 
     content.forEach((item, itemIndex) => {
       if (item.appName === 'CardTextBlock') {
-        const textBlock = `rich-text#tab-group-${groupIndex}-tab-${tabIndex}-card-${cardIndex}-text-${itemIndex}`
+        const textBlock = this.generateBlockName(
+          'rich-text',
+          `tab-group-${groupIndex}-tab-${tabIndex}-card-${cardIndex}-text-${itemIndex}`
+        )
         this.createBlock(textBlock, {
           blockName: textBlock,
           props: {
@@ -129,7 +153,10 @@ export class TabGroupProcessor extends CustomPageBlockProcessor<ComponentSharedT
         children.push(textBlock)
       } else if (item.appName === 'CardImageBlock') {
         item.images.forEach((image: any, imgIndex: number) => {
-          const imageBlock = `image#tab-group-${groupIndex}-tab-${tabIndex}-card-${cardIndex}-img-${itemIndex}-${imgIndex}`
+          const imageBlock = this.generateBlockName(
+            'image',
+            `tab-group-${groupIndex}-tab-${tabIndex}-card-${cardIndex}-img-${itemIndex}-${imgIndex}`
+          )
           this.createBlock(imageBlock, {
             blockName: imageBlock,
             props: {

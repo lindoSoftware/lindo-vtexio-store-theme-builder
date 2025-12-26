@@ -94,7 +94,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
       ... on ComponentSharedGroupCard {
         name
         appName
-        layout
+        cardGroupLayout
         cards {
           content {
             ... on ComponentSharedCardTextBlock {
@@ -115,6 +115,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
         appName
         title
         icon
+        tabLayout
         cards {
           content {
             ... on ComponentSharedCardTextBlock {
@@ -139,6 +140,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
           appName
           title
           icon
+          tabLayout
           cards {
             content {
               ... on ComponentSharedCardTextBlock {

@@ -26,6 +26,7 @@ export interface ComponentSharedRichText {
 export interface ComponentSharedGroupCard {
   name: string
   appName: string
+  layout?: 'full_width' | 'side_by_side'
   cards: Card[]
 }
 

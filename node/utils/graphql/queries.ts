@@ -94,6 +94,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
       ... on ComponentSharedGroupCard {
         name
         appName
+        layout
         cards {
           content {
             ... on ComponentSharedCardTextBlock {

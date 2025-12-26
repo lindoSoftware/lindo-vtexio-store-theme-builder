@@ -47,7 +47,7 @@ export class PaymentMethodsTabProcessor extends CustomPageBlockProcessor<Payment
       appName: tab.appName,
       title: tab.title,
       icon: tab.icon ?? null,
-      layout: 'side-by-side',
+      layout: tab.tabLayout ?? 'side-by-side',
       cards: tab.cards.map((card) => ({
         content: card.content,
       })),
@@ -60,10 +60,10 @@ export class PaymentMethodsTabProcessor extends CustomPageBlockProcessor<Payment
       title: tabGroup.title,
       icon: tabGroup.icon ?? null,
       tabs: tabGroup.tabs.map((tab) => ({
-        appName: tab.cards ? 'PaymentTab' : 'PaymentTabGroup',
+        appName: tab.appName,
         title: tab.title,
         icon: tab.icon ?? null,
-        layout: 'side-by-side',
+        layout: tab.tabLayout ?? 'side-by-side',
         cards: tab.cards.map((card) => ({
           content: card.content,
         })),

@@ -26,7 +26,7 @@ export interface ComponentSharedRichText {
 export interface ComponentSharedGroupCard {
   name: string
   appName: string
-  layout?: 'full_width' | 'side_by_side'
+  cardGroupLayout?: 'full_width' | 'side_by_side'
   cards: Card[]
 }
 
@@ -34,6 +34,7 @@ export interface ComponentSharedTab {
   appName: string
   title: string
   icon: string
+  tabLayout?: 'full_width' | 'side_by_side'
   cards: Card[]
 }
 
@@ -41,14 +42,7 @@ export interface ComponentSharedTabGroup {
   appName: string
   title: string
   icon: string
-  tabs: Tab[]
-}
-
-export interface Tab {
-  appName: string
-  title: string
-  icon: string
-  cards: Card[]
+  tabs: ComponentSharedTab[]
 }
 
 export interface Card {

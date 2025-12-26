@@ -19,7 +19,7 @@ export class GroupCardProcessor extends CustomPageBlockProcessor<ComponentShared
           {
             name: section.name,
             appName: 'CardGroup',
-            layout: section.layout,
+            cardGroupLayout: section.cardGroupLayout,
             cards: section.cards.map((card) => ({
               content: card.content,
             })),

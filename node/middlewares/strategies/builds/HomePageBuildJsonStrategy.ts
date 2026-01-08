@@ -17,15 +17,15 @@ export class HomePageBuildJsonStrategy
     layoutBuilder.initializePage('store.home')
 
     // Procesar cada sección
-    for (const section of data.homePage.content) {
+    data.homePage.content.forEach((section, index) => {
       const processor = processorFactory.getProcessor(section.appName)
 
       if (processor) {
-        processor.process(section, 0)
+        processor.process(section, index)
       } else {
         console.warn(`No processor found for appName: ${section.appName}`)
       }
-    }
+    })
 
     // Generar archivo final
     const layout = layoutBuilder.build()

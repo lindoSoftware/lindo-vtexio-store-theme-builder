@@ -47,6 +47,7 @@ export const HOME_PAGE_QUERY = `
         }
         ... on ComponentSharedMultipleImageSelector {
           id
+          appName
           imageSelectors {
             name
             title
@@ -66,7 +67,16 @@ export const HOME_PAGE_QUERY = `
               }
             }
           }
+        }
+        ... on ComponentSharedImagePuzzle {
           appName
+          id
+          layout
+          enableMirroring
+          enableRotation
+          images {
+            url
+          }
         }
       }
     }

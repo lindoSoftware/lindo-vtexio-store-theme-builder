@@ -22,6 +22,7 @@ export type HomePageContentBlock =
   | ClusterBlock
   | MultipleStaticBannerBlock
   | MultipleImageSelectorBlock
+  | ImagePuzzleBlock
 
 /**
  * Bloque tipo "Slider" (carrusel de banners)
@@ -99,6 +100,18 @@ export interface ImageResource {
 export interface MultipleImageSelectorBlock {
   appName: typeof HOMEPAGE_APPNAMES.MULTIPLE_IMAGE_SELECTOR
   imageSelectors: ImageSelector[]
+}
+
+/**
+ * Bloque tipo "ImagePuzzle"
+ */
+export interface ImagePuzzleBlock {
+  appName: typeof HOMEPAGE_APPNAMES.IMAGE_PUZZLE
+  id: string
+  layout: string
+  enableMirroring: boolean
+  enableRotation: boolean
+  images: ImageResource[]
 }
 
 /**

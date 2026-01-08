@@ -6,6 +6,7 @@ export const HOMEPAGE_APPNAMES = {
   CLUSTER: 'Cluster',
   MULTIPLE_STATIC_BANNER: 'MultipleStaticBanner',
   MULTIPLE_IMAGE_SELECTOR: 'MultipleImageSelector',
+  IMAGE_PUZZLE: 'ImagePuzzle',
 } as const
 
 export type HomePageAppName =

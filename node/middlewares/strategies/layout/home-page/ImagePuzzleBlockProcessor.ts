@@ -1,9 +1,11 @@
 import { ImagePuzzleBlock } from '../../../../typings/homepage-response'
+import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
 
 export class ImagePuzzleBlockProcessor extends BlockProcessor<ImagePuzzleBlock> {
   process(section: ImagePuzzleBlock, index: number): void {
-    console.log("section", section);
+    if (!isWithinDateRange(section.beginning, section.expiration)) return
+
     const blockName = `image-puzzle#image-puzzle-${index + 1}`
 
     this.createBlock(blockName, {

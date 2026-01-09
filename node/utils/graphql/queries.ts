@@ -74,6 +74,8 @@ export const HOME_PAGE_QUERY = `
           layout
           enableMirroring
           enableRotation
+          beginning
+          expiration
           images {
             url
           }

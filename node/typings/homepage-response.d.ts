@@ -111,6 +111,8 @@ export interface ImagePuzzleBlock {
   layout: string
   enableMirroring: boolean
   enableRotation: boolean
+  beginning: string // ISO 8601
+  expiration: string // ISO 8601
   images: ImageResource[]
 }
 

@@ -1,3 +1,4 @@
+import env from '../../../../env'
 import { ImagePuzzleBlock } from '../../../../typings/homepage-response'
 import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
@@ -15,11 +16,19 @@ export class ImagePuzzleBlockProcessor extends BlockProcessor<ImagePuzzleBlock> 
         layout: section.layout,
         enableMirroring: section.enableMirroring,
         enableRotation: section.enableRotation,
-        images: section.images.map((image) => ({
-          link: image.link,
-          text: image.text,
-          image: image.image,
-          mobileImage: image.mobileImage,
+        images: section.images.map((imageItem) => ({
+          link: imageItem.link,
+          text: imageItem.text,
+          image: {
+            url: imageItem.image?.url
+              ? `${env.STRAPI_URL}${imageItem.image.url}`
+              : '',
+          },
+          mobileImage: {
+            url: imageItem.mobileImage?.url
+              ? `${env.STRAPI_URL}${imageItem.mobileImage.url}`
+              : '',
+          },
         })),
       },
     })

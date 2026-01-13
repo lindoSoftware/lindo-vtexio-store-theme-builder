@@ -77,7 +77,14 @@ export const HOME_PAGE_QUERY = `
           beginning
           expiration
           images {
-            url
+            link
+            text
+            image {
+              url
+            }
+            mobileImage {
+              url
+            }
           }
         }
       }

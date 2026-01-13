@@ -16,7 +16,10 @@ export class ImagePuzzleBlockProcessor extends BlockProcessor<ImagePuzzleBlock> 
         enableMirroring: section.enableMirroring,
         enableRotation: section.enableRotation,
         images: section.images.map((image) => ({
-          url: image.url,
+          link: image.link,
+          text: image.text,
+          image: image.image,
+          mobileImage: image.mobileImage,
         })),
       },
     })

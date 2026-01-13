@@ -113,7 +113,7 @@ export interface ImagePuzzleBlock {
   enableRotation: boolean
   beginning: string // ISO 8601
   expiration: string // ISO 8601
-  images: ImageResource[]
+  images: ImageItem[]
 }
 
 /**

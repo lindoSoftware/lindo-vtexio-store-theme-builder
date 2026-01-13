@@ -108,7 +108,7 @@ export interface MultipleImageSelectorBlock {
 export interface ImagePuzzleBlock {
   appName: typeof HOMEPAGE_APPNAMES.IMAGE_PUZZLE
   id: string
-  layout: string
+  layout: number[][]
   enableMirroring: boolean
   enableRotation: boolean
   beginning: string // ISO 8601

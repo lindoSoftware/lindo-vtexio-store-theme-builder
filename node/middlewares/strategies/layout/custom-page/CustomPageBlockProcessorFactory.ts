@@ -1,6 +1,7 @@
 import { LayoutBuilder } from '../../../../typings/builder'
 import { CUSTOMPAGE_APPNAMES } from './custompage-constants'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
+import { FormProcessor } from './FormProcessor'
 import { GroupCardProcessor } from './GroupCardProcessor'
 import { PaymentMethodsTabProcessor } from './PaymentMethodsTabProcessor'
 import { RichTextProcessor } from './RichTextProcessor'
@@ -26,6 +27,10 @@ export class CustomPageBlockProcessorFactory {
 
       [CUSTOMPAGE_APPNAMES.TAB, paymentMethodsTabProcessor],
       [CUSTOMPAGE_APPNAMES.TAB_GROUP, paymentMethodsTabProcessor],
+      [
+        CUSTOMPAGE_APPNAMES.FORM,
+        new FormProcessor(layoutBuilder, pageSlug),
+      ],
     ])
   }
 

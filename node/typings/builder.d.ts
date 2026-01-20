@@ -2,6 +2,7 @@ export interface BlockBuilder {
   blockName: string
   props?: Record<string, any>
   children?: string[]
+  blocks?: string[]
 }
 
 export interface LayoutBuilder {

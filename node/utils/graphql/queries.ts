@@ -181,6 +181,10 @@ query CustomPages($filters: CustomPageFiltersInput) {
         appName
         text
       }
+      ... on ComponentSharedForm {
+        appName
+        schema
+      }
     }
   }
 }

@@ -17,6 +17,7 @@ export type CustomPageContent =
   | ComponentSharedTab
   | ComponentSharedTabGroup
   | ComponentSharedRichText
+  | ComponentSharedForm
 
 export interface ComponentSharedRichText {
   appName: string
@@ -66,4 +67,30 @@ export interface ComponentSharedCardImageBlock {
 
 export interface Image {
   url: string
+}
+
+export interface ComponentSharedForm {
+  appName: string
+  schema: {
+    name: string
+    schema: JSONSchema
+  }
+}
+
+export interface JSONSchema {
+  title?: string
+  type: 'object'
+  properties: {
+    [key: string]: {
+      type: string
+      title?: string
+      description?: string
+      format?: string
+      pattern?: string
+      minLength?: number
+      maxLength?: number
+      enum?: string[]
+    }
+  }
+  required?: string[]
 }

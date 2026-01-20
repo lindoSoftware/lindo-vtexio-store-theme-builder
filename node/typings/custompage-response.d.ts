@@ -9,6 +9,8 @@ export interface CustomPagesData {
 export interface CustomPage {
   slug: string
   path: string
+  title: string
+  subtitle?: string
   content: CustomPageContent[]
 }
 

@@ -24,6 +24,30 @@ export class CustomPageBuildJsonStrategy
       const pageKey = `store.custom#${page.slug}`
       layoutBuilder.initializePage(pageKey)
 
+      if (page.title) {
+        const titleBlock = `rich-text#title-${page.slug}`
+        layoutBuilder.addBlock(pageKey, titleBlock)
+        layoutBuilder.setBlockConfig(titleBlock, {
+          blockName: titleBlock,
+          props: {
+            text: `# ${page.title}`,
+            blockClass: 'custom-page-title'
+          }
+        })
+      }
+
+      if (page.subtitle) {
+        const subtitleBlock = `rich-text#subtitle-${page.slug}`
+        layoutBuilder.addBlock(pageKey, subtitleBlock)
+        layoutBuilder.setBlockConfig(subtitleBlock, {
+          blockName: subtitleBlock,
+          props: {
+            text: page.subtitle,
+            blockClass: 'custom-page-subtitle'
+          }
+        })
+      }
+
       // Procesar cada sección del content
       for (let i = 0; i < page.content.length; i++) {
         const section = page.content[i]

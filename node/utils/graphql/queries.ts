@@ -109,6 +109,8 @@ query CustomPages($filters: CustomPageFiltersInput) {
   customPages(filters: $filters) {
     slug
     path
+    title
+    subtitle
     content {
       ... on ComponentSharedGroupCard {
         name

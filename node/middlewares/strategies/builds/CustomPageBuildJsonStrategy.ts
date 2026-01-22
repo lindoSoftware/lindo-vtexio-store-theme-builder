@@ -25,26 +25,52 @@ export class CustomPageBuildJsonStrategy
       layoutBuilder.initializePage(pageKey)
 
       if (page.title) {
-        const titleBlock = `rich-text#title-${page.slug}`
-        layoutBuilder.addBlock(pageKey, titleBlock)
-        layoutBuilder.setBlockConfig(titleBlock, {
-          blockName: titleBlock,
+        const titleRow = `flex-layout.row#title-${page.slug}`
+        const titleCol = `flex-layout.col#title-${page.slug}-container`
+        const titleRichText = `rich-text#title-${page.slug}`
+
+        layoutBuilder.addBlock(pageKey, titleRow)
+        layoutBuilder.setBlockConfig(titleRow, {
+          blockName: titleRow,
+          children: [titleCol],
+        })
+
+        layoutBuilder.setBlockConfig(titleCol, {
+          blockName: titleCol,
+          children: [titleRichText],
+        })
+
+        layoutBuilder.setBlockConfig(titleRichText, {
+          blockName: titleRichText,
           props: {
             text: `# ${page.title}`,
-            blockClass: 'custom-page-title'
-          }
+            blockClass: 'custom-page-title',
+          },
         })
       }
 
       if (page.subtitle) {
-        const subtitleBlock = `rich-text#subtitle-${page.slug}`
-        layoutBuilder.addBlock(pageKey, subtitleBlock)
-        layoutBuilder.setBlockConfig(subtitleBlock, {
-          blockName: subtitleBlock,
+        const subtitleRow = `flex-layout.row#subtitle-${page.slug}`
+        const subtitleCol = `flex-layout.col#subtitle-${page.slug}-container`
+        const subtitleRichText = `rich-text#subtitle-${page.slug}`
+
+        layoutBuilder.addBlock(pageKey, subtitleRow)
+        layoutBuilder.setBlockConfig(subtitleRow, {
+          blockName: subtitleRow,
+          children: [subtitleCol],
+        })
+
+        layoutBuilder.setBlockConfig(subtitleCol, {
+          blockName: subtitleCol,
+          children: [subtitleRichText],
+        })
+
+        layoutBuilder.setBlockConfig(subtitleRichText, {
+          blockName: subtitleRichText,
           props: {
             text: page.subtitle,
-            blockClass: 'custom-page-subtitle'
-          }
+            blockClass: 'custom-page-subtitle',
+          },
         })
       }
 

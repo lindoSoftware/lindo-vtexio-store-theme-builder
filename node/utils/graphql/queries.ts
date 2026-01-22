@@ -187,6 +187,13 @@ query CustomPages($filters: CustomPageFiltersInput) {
         appName
         schema
       }
+      ... on ComponentSharedFaq {
+        appName
+        faqs {
+          question
+          answer
+        }
+      }
     }
   }
 }

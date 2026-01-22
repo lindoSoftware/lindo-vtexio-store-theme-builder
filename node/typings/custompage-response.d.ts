@@ -20,6 +20,7 @@ export type CustomPageContent =
   | ComponentSharedTabGroup
   | ComponentSharedRichText
   | ComponentSharedForm
+  | ComponentSharedFAQ
 
 export interface ComponentSharedRichText {
   appName: string
@@ -95,4 +96,14 @@ export interface JSONSchema {
     }
   }
   required?: string[]
+}
+
+export interface ComponentSharedFAQ {
+  appName: string
+  faqs: FAQItem[]
+}
+
+export interface FAQItem {
+  question: string
+  answer: string
 }

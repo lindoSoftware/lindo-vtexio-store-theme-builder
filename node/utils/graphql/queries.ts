@@ -194,6 +194,10 @@ query CustomPages($filters: CustomPageFiltersInput) {
           answer
         }
       }
+      ... on ComponentSharedBranchSelector {
+        appName
+        showMap
+      }
     }
   }
 }

@@ -21,6 +21,7 @@ export type CustomPageContent =
   | ComponentSharedRichText
   | ComponentSharedForm
   | ComponentSharedFAQ
+  | ComponentSharedBranchSelector
 
 export interface ComponentSharedRichText {
   appName: string
@@ -106,4 +107,9 @@ export interface ComponentSharedFAQ {
 export interface FAQItem {
   question: string
   answer: string
+}
+
+export interface ComponentSharedBranchSelector {
+  appName: string
+  showMap: boolean
 }

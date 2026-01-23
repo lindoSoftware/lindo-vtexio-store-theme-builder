@@ -1,4 +1,5 @@
 import { LayoutBuilder } from '../../../../typings/builder'
+import { BranchSelectorProcessor } from './BranchSelectorProcessor'
 import { CUSTOMPAGE_APPNAMES } from './custompage-constants'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 import { FAQProcessor } from './FAQProcessor'
@@ -28,13 +29,11 @@ export class CustomPageBlockProcessorFactory {
 
       [CUSTOMPAGE_APPNAMES.TAB, paymentMethodsTabProcessor],
       [CUSTOMPAGE_APPNAMES.TAB_GROUP, paymentMethodsTabProcessor],
+      [CUSTOMPAGE_APPNAMES.FORM, new FormProcessor(layoutBuilder, pageSlug)],
+      [CUSTOMPAGE_APPNAMES.FAQ, new FAQProcessor(layoutBuilder, pageSlug)],
       [
-        CUSTOMPAGE_APPNAMES.FORM,
-        new FormProcessor(layoutBuilder, pageSlug),
-      ],
-      [
-        CUSTOMPAGE_APPNAMES.FAQ,
-        new FAQProcessor(layoutBuilder, pageSlug),
+        CUSTOMPAGE_APPNAMES.BRANCH_SELECTOR,
+        new BranchSelectorProcessor(layoutBuilder, pageSlug),
       ],
     ])
   }

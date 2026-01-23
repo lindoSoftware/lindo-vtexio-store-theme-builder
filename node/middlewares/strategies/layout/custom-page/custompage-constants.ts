@@ -5,4 +5,5 @@ export const CUSTOMPAGE_APPNAMES = {
   TAB_GROUP: 'PaymentTabGroup',
   FORM: 'Form',
   FAQ: 'FAQ',
+  BRANCH_SELECTOR: 'BranchSelector',
 } as const

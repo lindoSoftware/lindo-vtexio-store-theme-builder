@@ -5,14 +5,16 @@ import ENV from '../env'
 
 export default class GitHubClient extends ExternalClient {
   private octokit: Octokit
+  private branch: string = 'main'
 
   constructor(context: IOContext, options?: InstanceOptions) {
     super(ENV.GIT_API_URL ?? '', context, options)
     this.octokit = new Octokit({ auth: '' })
   }
 
-  public async init(token: string) {
+  public async init(token: string, branch?: string): Promise<void> {
     this.octokit = new Octokit({ auth: token })
+    this.branch = branch ?? 'main'
   }
 
   // Obtener contenido de un archivo (método público para usar en CommitJsonCommand)
@@ -24,7 +26,7 @@ export default class GitHubClient extends ExternalClient {
         owner: ENV.GIT_OWNER ?? '',
         repo: ENV.GIT_REPOSITORY ?? '',
         path,
-        ref: ENV.GIT_BRANCH ?? 'main',
+        ref: this.branch,
       })
 
       if ('sha' in response.data && 'content' in response.data) {
@@ -52,7 +54,7 @@ export default class GitHubClient extends ExternalClient {
         owner: ENV.GIT_OWNER ?? '',
         repo: ENV.GIT_REPOSITORY ?? '',
         path,
-        ref: ENV.GIT_BRANCH ?? 'main',
+        ref: this.branch,
       })
 
       if ('sha' in response.data) {
@@ -85,7 +87,7 @@ export default class GitHubClient extends ExternalClient {
           owner: ENV.GIT_OWNER ?? '',
           repo: ENV.GIT_REPOSITORY ?? '',
           path,
-          ref: ENV.GIT_BRANCH ?? 'main',
+          ref: this.branch,
         })
 
         if ('content' in data && typeof data.content === 'string') {
@@ -115,7 +117,7 @@ export default class GitHubClient extends ExternalClient {
         message:
           message || (isUpdate ? 'Automated update file' : 'Creating new file'),
         content: Buffer.from(content).toString('base64'),
-        branch: ENV.GIT_BRANCH ?? 'main',
+        branch: this.branch,
         ...(isUpdate && { sha }),
       })
 
@@ -145,7 +147,7 @@ export default class GitHubClient extends ExternalClient {
         path,
         message: 'Deleting file',
         sha,
-        branch: ENV.GIT_BRANCH ?? 'main',
+        branch: this.branch,
       })
 
       return {

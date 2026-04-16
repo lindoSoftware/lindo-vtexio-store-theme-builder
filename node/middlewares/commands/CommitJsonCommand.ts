@@ -1,5 +1,6 @@
 import { Command } from '../../typings/command'
 import type { SectionDataMap } from '../../typings/sections-map'
+import { SettingsHelper } from '../../utils/SettingsHelper'
 import type { GeneratedFile } from './BuildJsonCommand'
 
 export class CommitJsonCommand<
@@ -7,6 +8,7 @@ export class CommitJsonCommand<
 > extends Command<TSection> {
   private readonly ctx: Context
   private readonly files: GeneratedFile[]
+  private settingsHelper: SettingsHelper
 
   constructor(
     section: TSection,
@@ -17,6 +19,7 @@ export class CommitJsonCommand<
     super(section, data)
     this.ctx = ctx
     this.files = files
+    this.settingsHelper = new SettingsHelper(this.ctx)
   }
 
   /**
@@ -47,16 +50,12 @@ export class CommitJsonCommand<
    * Carga el token desde settings (solo una vez)
    */
   private async loadGitHubToken(): Promise<void> {
-    const appId = process.env.VTEX_APP_ID ?? ''
+    const token = await this.settingsHelper.getRequiredSetting('githubToken')
+    const branch = await this.settingsHelper.getRequiredSetting(
+      'githubBranchName'
+    )
 
-    const settings = await this.ctx.clients.apps.getAppSettings(appId)
-    const token = settings?.githubToken
-
-    if (!token) {
-      throw new Error('GitHub token not found in app settings')
-    }
-
-    await this.ctx.clients.github.init(token)
+    await this.ctx.clients.github.init(token, branch)
   }
 
   /**

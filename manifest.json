@@ -37,6 +37,11 @@
         "title": "GITHUB TOKEN",
         "description": "Enter your Github Token (ghp_aDNpnTl1G...)",
         "type": "string"
+      },
+      "githubBranchName": {
+        "title": "GITHUB Branch Name",
+        "description": "Enter your Github branch name (main, staging, etc...)",
+        "type": "string"
       }
     }
   }

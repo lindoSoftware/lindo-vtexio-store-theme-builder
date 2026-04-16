@@ -12,7 +12,6 @@ export class ImagePuzzleBlockProcessor extends BlockProcessor<ImagePuzzleBlock> 
     this.createBlock(blockName, {
       blockName,
       props: {
-        id: section.id,
         layout: section.layout,
         enableMirroring: section.enableMirroring,
         enableRotation: section.enableRotation,

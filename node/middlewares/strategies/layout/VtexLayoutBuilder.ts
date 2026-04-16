@@ -21,6 +21,7 @@ export class VtexLayoutBuilder implements LayoutBuilder {
 
   setBlockConfig(blockName: string, config: BlockBuilder): void {
     this.layout[blockName] = {
+      ...(config.blocks && { blocks: config.blocks }),
       ...(config.children && { children: config.children }),
       ...(config.props && { props: config.props }),
     }

@@ -24,6 +24,7 @@ export class ClusterBlockProcessor extends BlockProcessor<ClusterBlock> {
 
     this.createBlock(productList, {
       blockName: productList,
+      blocks: ['product-summary.shelf#cluster'],
       children: ['slider-layout#cluster'],
       props,
     })
@@ -32,7 +33,7 @@ export class ClusterBlockProcessor extends BlockProcessor<ClusterBlock> {
   private buildClusterProps(section: ClusterBlock): Record<string, any> {
     const props: Record<string, any> = {}
 
-    if (section.title?.trim()) {
+    if (section.title?.trim() && section.typeNumber !== 2) {
       props.title = section.title
     }
 

@@ -121,7 +121,7 @@ export interface ImagePuzzleBlock {
  */
 export interface ImageSelector {
   name: string
-  title: string
+  title?: string
   beginning: string // ISO 8601
   expiration: string // ISO 8601
   itemsPerPageDesktop: number

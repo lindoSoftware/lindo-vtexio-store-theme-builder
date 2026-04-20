@@ -3,6 +3,7 @@ import type { CustomPagesData } from '../../../typings/custompage-response'
 import { GeneratedFile } from '../../commands/BuildJsonCommand'
 import { VtexLayoutBuilder } from '../layout/VtexLayoutBuilder'
 import { CustomPageBlockProcessorFactory } from '../layout/custom-page/CustomPageBlockProcessorFactory'
+import env from '../../../env'
 
 export class CustomPageBuildJsonStrategy
   implements BuildJsonStrategy<CustomPagesData>
@@ -91,7 +92,7 @@ export class CustomPageBuildJsonStrategy
       const content = JSON.stringify(layout, null, 2)
 
       generatedFiles.push({
-        path: `store/blocks/pages/custom/${page.path}`,
+        path: `${env.CUSTOM_PAGE_PATH}${page.path}`,
         filename: `${page.slug}.jsonc`,
         content,
       })

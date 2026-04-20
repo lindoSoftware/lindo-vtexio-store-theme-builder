@@ -62,7 +62,7 @@ export class CommitJsonCommand<
    * Crea o actualiza un archivo en GitHub
    */
   private async commitFile(file: GeneratedFile): Promise<void> {
-    const filePath = `${file.path}/${file.filename}`
+    const filePath = `${file.path}/${file.filename}`.replace(/\/+/g, '/')
 
     this.ctx.vtex.logger.info({
       message: `[CommitJsonCommand] Syncing file: ${filePath}`,
@@ -73,6 +73,7 @@ export class CommitJsonCommand<
       await this.commitRoutesFile(filePath, file.content)
       return
     }
+
 
     // Commit normal para otros archivos
     const res = await this.ctx.clients.github.createOrUpdateFile(

@@ -114,7 +114,7 @@ export class CustomPageBuildJsonStrategy
     for (const page of pages) {
       const pageKey = `store.custom#${page.slug}`
       routes[pageKey] = {
-        path: `/${page.path}`,
+        path: `/${page.path}`.replace(/\/+/g, '/'),
       }
     }
 

@@ -74,7 +74,6 @@ export class CommitJsonCommand<
       return
     }
 
-
     // Commit normal para otros archivos
     const res = await this.ctx.clients.github.createOrUpdateFile(
       filePath,

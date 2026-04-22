@@ -1,8 +1,8 @@
-import env from '../../../../env'
 import {
   ComponentSharedTab,
   ComponentSharedTabGroup,
 } from '../../../../typings/custompage-response'
+import { mapCardContent } from '../../../../utils/card.helper'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 type PaymentTabContent = ComponentSharedTab | ComponentSharedTabGroup
@@ -50,7 +50,7 @@ export class PaymentMethodsTabProcessor extends CustomPageBlockProcessor<Payment
       icon: tab.icon ?? null,
       layout: tab.tabLayout ?? 'side-by-side',
       cards: tab.cards.map((card) => ({
-        content: this.mapCardContent(card.content),
+        content: mapCardContent(card.content),
       })),
     }
   }
@@ -66,32 +66,10 @@ export class PaymentMethodsTabProcessor extends CustomPageBlockProcessor<Payment
         icon: tab.icon ?? null,
         layout: tab.tabLayout ?? 'side-by-side',
         cards: tab.cards.map((card) => ({
-          content: this.mapCardContent(card.content),
+          content: mapCardContent(card.content),
         })),
       })),
     }
-  }
-
-  /**
-   * Nueva función auxiliar para procesar los bloques dentro de una card
-   * y concatenar la URL de Strapi si es una imagen.
-   */
-  private mapCardContent(content: any[]) {
-    return content.map((block) => {
-      // Verificamos si el bloque es de tipo imagen (según tu interface ComponentSharedCardImageBlock)
-      if (block.images && Array.isArray(block.images)) {
-        return {
-          ...block,
-          images: block.images.map((img: any) => ({
-            ...img,
-            // Concatenamos la URL base si el path es relativo
-            url: img.url ? `${env.STRAPI_URL}${img.url}` : null,
-          })),
-        }
-      }
-      // Si es un text block u otro tipo, lo devolvemos tal cual
-      return block
-    })
   }
 
   /* =======================

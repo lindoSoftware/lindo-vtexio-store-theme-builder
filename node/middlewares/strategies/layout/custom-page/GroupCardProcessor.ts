@@ -1,4 +1,5 @@
 import { ComponentSharedGroupCard } from '../../../../typings/custompage-response'
+import { mapCardContent } from '../../../../utils/card.helper'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class GroupCardProcessor extends CustomPageBlockProcessor<ComponentSharedGroupCard> {
@@ -21,7 +22,7 @@ export class GroupCardProcessor extends CustomPageBlockProcessor<ComponentShared
             appName: 'CardGroup',
             cardGroupLayout: section.cardGroupLayout,
             cards: section.cards.map((card) => ({
-              content: card.content,
+              content: mapCardContent(card.content),
             })),
           },
         ],

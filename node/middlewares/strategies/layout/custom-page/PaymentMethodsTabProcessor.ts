@@ -50,7 +50,7 @@ export class PaymentMethodsTabProcessor extends CustomPageBlockProcessor<Payment
       icon: tab.icon ?? null,
       layout: tab.tabLayout ?? 'side-by-side',
       cards: tab.cards.map((card) => ({
-        content: mapCardContent(card.content),
+        content: mapCardContent(card.content, this.strapiURL),
       })),
     }
   }
@@ -66,7 +66,7 @@ export class PaymentMethodsTabProcessor extends CustomPageBlockProcessor<Payment
         icon: tab.icon ?? null,
         layout: tab.tabLayout ?? 'side-by-side',
         cards: tab.cards.map((card) => ({
-          content: mapCardContent(card.content),
+          content: mapCardContent(card.content, this.strapiURL),
         })),
       })),
     }

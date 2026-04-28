@@ -1,6 +1,5 @@
 import { ExternalClient, InstanceOptions, IOContext } from '@vtex/api'
 import { CUSTOM_PAGE_QUERY, HOME_PAGE_QUERY, NAVBAR_QUERY } from '../utils/graphql/queries'
-import ENV from '../env'
 import { HomePageData } from '../typings/homepage-response'
 import { NavbarData } from '../typings/navbar-response'
 import { CustomPagesData } from '../typings/custompage-response'
@@ -14,8 +13,8 @@ interface GraphQLResponse<T> {
 }
 
 export class StrapiContentClient extends ExternalClient {
-  constructor(ctx: IOContext, opts?: InstanceOptions) {
-    super(`${ENV.STRAPI_URL}/graphql/`, ctx, {
+  constructor(baseUrl: string, ctx: IOContext, opts?: InstanceOptions) {
+    super(`${baseUrl}/graphql/`, ctx, {
       ...opts,
       headers: {
         'Content-Type': 'application/json',

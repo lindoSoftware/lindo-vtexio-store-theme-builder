@@ -1,4 +1,3 @@
-import env from '../../../../env'
 import { SliderBlock } from '../../../../typings/homepage-response'
 import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
@@ -31,8 +30,8 @@ export class SliderBlockProcessor extends BlockProcessor<SliderBlock> {
         height: section.height,
         preload: section.preload,
         images: validBanners.map((b) => ({
-          image: env.STRAPI_URL + b.desktopImage.url,
-          mobileImage: env.STRAPI_URL + b.mobileImage.url,
+          image: this.strapiURL + b.desktopImage.url,
+          mobileImage: this.strapiURL + b.mobileImage.url,
           link: {
             url: b.link ?? '',
             openNewTab: false,

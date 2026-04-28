@@ -1,4 +1,3 @@
-import env from '../../../../env'
 import { ImagePuzzleBlock } from '../../../../typings/homepage-response'
 import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
@@ -20,12 +19,12 @@ export class ImagePuzzleBlockProcessor extends BlockProcessor<ImagePuzzleBlock> 
           text: imageItem.text,
           image: {
             url: imageItem.image?.url
-              ? `${env.STRAPI_URL}${imageItem.image.url}`
+              ? `${this.strapiURL}${imageItem.image.url}`
               : '',
           },
           mobileImage: {
             url: imageItem.mobileImage?.url
-              ? `${env.STRAPI_URL}${imageItem.mobileImage.url}`
+              ? `${this.strapiURL}${imageItem.mobileImage.url}`
               : '',
           },
         })),

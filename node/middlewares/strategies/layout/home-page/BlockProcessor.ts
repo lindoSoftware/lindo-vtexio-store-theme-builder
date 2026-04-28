@@ -1,7 +1,10 @@
 import { BlockBuilder, LayoutBuilder } from "../../../../typings/builder"
 
 export abstract class BlockProcessor<T> {
-  constructor(protected layoutBuilder: LayoutBuilder) {}
+  constructor(
+    protected layoutBuilder: LayoutBuilder,
+    protected strapiURL: string
+  ) {}
 
   abstract process(section: T, index: number): void
 

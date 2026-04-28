@@ -10,19 +10,19 @@ import { SliderBlockProcessor } from './SliderBlockProcessor'
 export class BlockProcessorFactory {
   private processors: Map<string, BlockProcessor<any>>
 
-  constructor(layoutBuilder: LayoutBuilder) {
+  constructor(layoutBuilder: LayoutBuilder, strapiURL: string) {
     this.processors = new Map<string, BlockProcessor<any>>([
-      [HOMEPAGE_APPNAMES.SLIDER, new SliderBlockProcessor(layoutBuilder)],
-      [HOMEPAGE_APPNAMES.CLUSTER, new ClusterBlockProcessor(layoutBuilder)],
+      [HOMEPAGE_APPNAMES.SLIDER, new SliderBlockProcessor(layoutBuilder, strapiURL)],
+      [HOMEPAGE_APPNAMES.CLUSTER, new ClusterBlockProcessor(layoutBuilder, strapiURL)],
       [
         HOMEPAGE_APPNAMES.MULTIPLE_STATIC_BANNER,
-        new MultipleStaticBannerProcessor(layoutBuilder),
+        new MultipleStaticBannerProcessor(layoutBuilder, strapiURL),
       ],
       [
         HOMEPAGE_APPNAMES.MULTIPLE_IMAGE_SELECTOR,
-        new MultipleImageSelectorProcessor(layoutBuilder),
+        new MultipleImageSelectorProcessor(layoutBuilder, strapiURL),
       ],
-      [HOMEPAGE_APPNAMES.IMAGE_PUZZLE, new ImagePuzzleBlockProcessor(layoutBuilder)],
+      [HOMEPAGE_APPNAMES.IMAGE_PUZZLE, new ImagePuzzleBlockProcessor(layoutBuilder, strapiURL)],
     ])
   }
 

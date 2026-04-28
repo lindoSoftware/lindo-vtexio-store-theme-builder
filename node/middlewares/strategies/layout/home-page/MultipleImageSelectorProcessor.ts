@@ -1,4 +1,3 @@
-import env from "../../../../env"
 import { ImageItem, ImageSelector, MultipleImageSelectorBlock } from "../../../../typings/homepage-response"
 import { isWithinDateRange } from "../../../../utils/isWithinDateRange"
 import { BlockProcessor } from "./BlockProcessor"
@@ -108,7 +107,7 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
       this.createBlock(imageBlock, {
         blockName: imageBlock,
         props: {
-          src: env.STRAPI_URL + image.image.url,
+          src: this.strapiURL + image.image.url,
         },
       })
       children.push(imageBlock)

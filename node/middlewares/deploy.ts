@@ -5,15 +5,17 @@ import { readRequestBodyAsJSON } from '../utils/middleware.helper'
 import { BuildJsonCommand } from './commands/BuildJsonCommand'
 import { SectionStrategyFactory } from './strategies/cms/SectionStrategyFactory'
 import { CommitJsonCommand } from './commands/CommitJsonCommand'
+import { StrapiConfigService } from '../services/StrapiConfigService'
 
 export async function deploy(ctx: Context, next: () => Promise<any>) {
   try {
     const params = await readRequestBodyAsJSON<DeployRequestBody>(ctx.req)
+    const strapiURL = await StrapiConfigService.getStrapiURL(ctx)
 
     const strategy = SectionStrategyFactory.create(params.section)
-    const data = await strategy.getData(ctx, params.variables)
+    const data = await strategy.getData(ctx, params.variables, strapiURL)
 
-    const buildCommand = new BuildJsonCommand(params.section, data)
+    const buildCommand = new BuildJsonCommand(params.section, data, strapiURL)
     await buildCommand.execute()
 
     const commitCommand = new CommitJsonCommand(

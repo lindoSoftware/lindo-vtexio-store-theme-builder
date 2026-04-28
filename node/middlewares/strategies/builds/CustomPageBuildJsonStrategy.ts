@@ -10,6 +10,8 @@ export class CustomPageBuildJsonStrategy
 {
   readonly section = 'custom-page' as const
 
+  constructor(private strapiURL: string) {}
+
   async build(data: CustomPagesData): Promise<GeneratedFile[]> {
     const generatedFiles: GeneratedFile[] = []
 
@@ -18,7 +20,8 @@ export class CustomPageBuildJsonStrategy
       const layoutBuilder = new VtexLayoutBuilder()
       const processorFactory = new CustomPageBlockProcessorFactory(
         layoutBuilder,
-        page.slug
+        page.slug,
+        this.strapiURL
       )
 
       // Cambiar 'store.home' por el identificador de la página custom

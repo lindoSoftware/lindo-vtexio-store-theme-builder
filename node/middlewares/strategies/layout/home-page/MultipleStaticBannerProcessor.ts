@@ -1,4 +1,3 @@
-import env from "../../../../env"
 import { MultipleStaticBannerBlock, StaticBannerGroup } from "../../../../typings/homepage-response"
 import { isWithinDateRange } from "../../../../utils/isWithinDateRange"
 import { BlockProcessor } from "./BlockProcessor"
@@ -39,10 +38,10 @@ export class MultipleStaticBannerProcessor extends BlockProcessor<MultipleStatic
       props: {
         preload: true,
         images: bannerGroup.banners.map((b) => ({
-          image: env.STRAPI_URL + b.image.url,
+          image: this.strapiURL + b.image.url,
           mobileImage: b.mobileImage
-            ? env.STRAPI_URL + b.mobileImage.url
-            : env.STRAPI_URL + b.image.url,
+            ? this.strapiURL + b.mobileImage.url
+            : this.strapiURL + b.image.url,
           link: {
             url: b.link ?? '',
             openNewTab: false,

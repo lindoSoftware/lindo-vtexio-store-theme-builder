@@ -22,7 +22,7 @@ export class GroupCardProcessor extends CustomPageBlockProcessor<ComponentShared
             appName: 'CardGroup',
             cardGroupLayout: section.cardGroupLayout,
             cards: section.cards.map((card) => ({
-              content: mapCardContent(card.content),
+              content: mapCardContent(card.content, this.strapiURL),
             })),
           },
         ],

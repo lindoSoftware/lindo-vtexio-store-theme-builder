@@ -9,9 +9,11 @@ export class HomePageBuildJsonStrategy
 {
   readonly section = 'home-page' as const
 
+  constructor(private strapiURL: string) {}
+
   async build(data: HomePageData): Promise<GeneratedFile[]> {
     const layoutBuilder = new VtexLayoutBuilder()
-    const processorFactory = new BlockProcessorFactory(layoutBuilder)
+    const processorFactory = new BlockProcessorFactory(layoutBuilder, this.strapiURL)
 
     // Inicializar la página home
     layoutBuilder.initializePage('store.home')

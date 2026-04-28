@@ -6,7 +6,8 @@ export abstract class CustomPageBlockProcessor<T> {
 
   constructor(
     protected layoutBuilder: LayoutBuilder,
-    pageSlug: string
+    pageSlug: string,
+    protected strapiURL: string
   ) {
     this.blockNameHelper = new BlockNameHelper(pageSlug)
   }

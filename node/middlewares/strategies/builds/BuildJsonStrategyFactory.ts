@@ -12,9 +12,10 @@ const strategyMap = {
 
 export class BuildJsonStrategyFactory {
   static create<TSection extends keyof typeof strategyMap>(
-    section: TSection
+    section: TSection,
+    strapiURL: string
   ): BuildJsonStrategy<SectionDataMap[TSection]> {
     const Strategy = strategyMap[section]
-    return new Strategy() as BuildJsonStrategy<SectionDataMap[TSection]>
+    return new Strategy(strapiURL) as BuildJsonStrategy<SectionDataMap[TSection]>
   }
 }

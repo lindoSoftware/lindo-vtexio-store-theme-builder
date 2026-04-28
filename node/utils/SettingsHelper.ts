@@ -1,6 +1,7 @@
 export type AppSettings = {
   githubToken: string
   githubBranchName: string
+  strapiURL: string
 }
 
 export class SettingsHelper {

@@ -42,6 +42,11 @@
         "title": "GITHUB Branch Name",
         "description": "Enter your Github branch name (main, staging, etc...)",
         "type": "string"
+      },
+      "strapiURL": {
+        "title": "Strapi URL",
+        "description": "Enter your Strapi URL (https://strapi-instance-url.com)",
+        "type": "string"
       }
     }
   }

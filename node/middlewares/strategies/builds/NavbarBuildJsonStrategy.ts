@@ -16,6 +16,7 @@ export class NavbarBuildJsonStrategy implements BuildJsonStrategy<NavbarData> {
       layoutJson['custom-navbar'].props.items.push({
         text: item.text,
         link: item.url,
+        icon: item.icon,
       })
     }
 

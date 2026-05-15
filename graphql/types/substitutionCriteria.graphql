@@ -1,7 +1,0 @@
-type SubstitutionCriteria {
-  name: string
-  value: number
-  order: number
-  enabled: boolean
-  withNote: boolean
-}

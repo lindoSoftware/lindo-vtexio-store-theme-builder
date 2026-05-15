@@ -5,8 +5,7 @@
   "title": "Store Theme Builder",
   "description": "",
   "builders": {
-    "node": "7.x",
-    "graphql": "2.0"
+    "node": "7.x"
   },
   "scripts": {
     "prereleasy": "bash lint.sh"

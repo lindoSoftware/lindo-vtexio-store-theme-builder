@@ -1,4 +1,0 @@
-type ProvinceView {
-   id: String
-   name: String
-}

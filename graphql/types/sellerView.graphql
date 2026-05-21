@@ -1,7 +1,0 @@
-type SellerView {
-  id: String!
-  geoName: String!
-  shippingMethod: String!
-  regionId: String!
-  location: Location!
-}

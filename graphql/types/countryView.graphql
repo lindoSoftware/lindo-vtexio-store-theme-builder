@@ -1,8 +1,0 @@
-type CountryView {
-  id: String!
-  name: String!
-  address: String!
-  coordinates: String!
-  city: String!
-  state: String!
-}

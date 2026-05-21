@@ -108,6 +108,8 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
         blockName: imageBlock,
         props: {
           src: this.strapiURL + image.image.url,
+          width: 65,
+          height: 65
         },
       })
       children.push(imageBlock)

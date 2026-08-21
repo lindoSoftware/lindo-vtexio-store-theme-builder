@@ -13,11 +13,19 @@ interface GraphQLResponse<T> {
 }
 
 export class StrapiContentClient extends ExternalClient {
-  constructor(baseUrl: string, ctx: IOContext, opts?: InstanceOptions) {
+  constructor(
+    baseUrl: string,
+    ctx: IOContext,
+    token?: string,
+    opts?: InstanceOptions
+  ) {
     super(`${baseUrl}/graphql/`, ctx, {
       ...opts,
       headers: {
         'Content-Type': 'application/json',
+        // Sin token la query se resuelve con el rol Public de Strapi, que
+        // debe tener habilitado `find` en cada content type consultado.
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     })
   }

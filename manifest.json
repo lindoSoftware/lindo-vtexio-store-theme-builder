@@ -46,6 +46,11 @@
         "title": "Strapi URL",
         "description": "Enter your Strapi URL (https://strapi-instance-url.com)",
         "type": "string"
+      },
+      "strapiToken": {
+        "title": "Strapi API Token",
+        "description": "Read-only API Token de Strapi (Settings > API Tokens). Opcional: si se deja vacío las queries usan el rol Public.",
+        "type": "string"
       }
     }
   }

@@ -10,12 +10,12 @@ import { StrapiConfigService } from '../services/StrapiConfigService'
 export async function deploy(ctx: Context, next: () => Promise<any>) {
   try {
     const params = await readRequestBodyAsJSON<DeployRequestBody>(ctx.req)
-    const strapiURL = await StrapiConfigService.getStrapiURL(ctx)
+    const strapi = await StrapiConfigService.getConfig(ctx)
 
     const strategy = SectionStrategyFactory.create(params.section)
-    const data = await strategy.getData(ctx, params.variables, strapiURL)
+    const data = await strategy.getData(ctx, params.variables, strapi)
 
-    const buildCommand = new BuildJsonCommand(params.section, data, strapiURL)
+    const buildCommand = new BuildJsonCommand(params.section, data, strapi.url)
     await buildCommand.execute()
 
     const commitCommand = new CommitJsonCommand(

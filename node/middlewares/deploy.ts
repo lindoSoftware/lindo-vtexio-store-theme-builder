@@ -5,7 +5,9 @@ import { readRequestBodyAsJSON } from '../utils/middleware.helper'
 import { BuildJsonCommand } from './commands/BuildJsonCommand'
 import { SectionStrategyFactory } from './strategies/cms/SectionStrategyFactory'
 import { CommitJsonCommand } from './commands/CommitJsonCommand'
+import { DeleteCustomPageCommand } from './commands/DeleteCustomPageCommand'
 import { StrapiConfigService } from '../services/StrapiConfigService'
+import type { CustomPagesData } from '../typings/custompage-response'
 
 export async function deploy(ctx: Context, next: () => Promise<any>) {
   try {
@@ -28,6 +30,19 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
 
     const commands: Command[] = [commitCommand]
 
+    // Si la página fue renombrada en el CMS hay que borrar la versión vieja.
+    // Va después del commit: si publicar la nueva falla, la vieja sigue en pie.
+    if (params.section === 'custom-page' && params.previousSlug) {
+      commands.push(
+        new DeleteCustomPageCommand(
+          params.section,
+          data as CustomPagesData,
+          ctx,
+          params.previousSlug
+        )
+      )
+    }
+
     // Los comandos son una pipeline: cada uno depende del anterior, por eso
     // se ejecutan en serie y no con Promise.all.
     for (const command of commands) {
@@ -39,6 +54,7 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
       success: true,
       section: params.section,
       variables: params.variables ?? null,
+      previousSlug: params.previousSlug ?? null,
       data,
     }
 

@@ -75,6 +75,8 @@ Público. Construye y commitea el layout de una sección.
 
 - `section`: `"navbar"` | `"home-page"` | `"custom-page"`
 - `variables`: opcional, se pasa como variables a la query de Strapi (solo lo usa `custom-page`).
+- `previousSlug`: opcional, solo para `custom-page`. Slug con el que la página estaba
+  publicada antes de renombrarla en el CMS — ver [Renombrado de custom pages](#renombrado-de-custom-pages).
 
 **Respuesta OK (200)**
 
@@ -83,6 +85,7 @@ Público. Construye y commitea el layout de una sección.
   "success": true,
   "section": "custom-page",
   "variables": { "filters": { "slug": { "eq": "medios-de-pago" } } },
+  "previousSlug": null,
   "data": { "customPages": [] }
 }
 ```
@@ -104,6 +107,37 @@ Público. Construye y commitea el layout de una sección.
 `routes.json` no se sobrescribe: se hace merge con el contenido existente en el repo
 (las rutas nuevas pisan a las viejas en caso de conflicto). Si una sección no genera
 archivos, el commit se omite por completo.
+
+### Renombrado de custom pages
+
+Cuando en el CMS se le cambia el slug a una custom page, el archivo publicado con el
+slug viejo queda huérfano en el theme. Para limpiarlo, el CMS manda el slug anterior
+en el mismo request:
+
+```json
+{
+  "section": "custom-page",
+  "variables": { "filters": { "slug": { "eq": "nueva-pagina" } } },
+  "previousSlug": "pagina-vieja"
+}
+```
+
+Con eso, después de publicar la página nueva, `DeleteCustomPageCommand`:
+
+1. Busca `store.custom#<previousSlug>` en `routes.json` — es la única fuente que sabe
+   con qué `path` se publicó la página vieja.
+2. Borra `store/blocks/pages/custom/<path>/<previousSlug>.jsonc`.
+3. Commitea `routes.json` sin esa entrada.
+
+El borrado corre **después** del commit de la página nueva: si publicarla falla, la
+vieja sigue en pie. Es una operación best-effort y nunca rompe el deploy — se saltea
+con un warning si el `previousSlug` no es válido, si no tiene ruta publicada, o si
+coincide con una de las páginas que se acaban de publicar (borrarla dejaría el theme
+sin la página recién generada). Si la ruta existe pero el `.jsonc` ya no está, igual
+se limpia la entrada de `routes.json`.
+
+El `previousSlug` se normaliza con `BlockNameHelper.sanitizeSlug`, igual que en el
+build, así que tiene que llegar tal cual estaba el slug en el CMS.
 
 ### Bloques soportados
 

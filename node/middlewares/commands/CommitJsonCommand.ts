@@ -1,6 +1,6 @@
 import { Command } from '../../typings/command'
 import type { SectionDataMap } from '../../typings/sections-map'
-import { SettingsHelper } from '../../utils/SettingsHelper'
+import { initGitHubClient } from '../../utils/github.helper'
 import type { GeneratedFile } from './BuildJsonCommand'
 
 export class CommitJsonCommand<
@@ -8,7 +8,6 @@ export class CommitJsonCommand<
 > extends Command<TSection> {
   private readonly ctx: Context
   private readonly files: GeneratedFile[]
-  private settingsHelper: SettingsHelper
 
   constructor(
     section: TSection,
@@ -19,7 +18,6 @@ export class CommitJsonCommand<
     super(section, data)
     this.ctx = ctx
     this.files = files
-    this.settingsHelper = new SettingsHelper(this.ctx)
   }
 
   /**
@@ -38,7 +36,7 @@ export class CommitJsonCommand<
         return
       }
 
-      await this.loadGitHubToken()
+      await initGitHubClient(this.ctx)
 
       // Se commitea en serie: cada commit depende del SHA que dejó el
       // anterior, así que no se pueden paralelizar.
@@ -58,18 +56,6 @@ export class CommitJsonCommand<
       })
       throw error
     }
-  }
-
-  /**
-   * Carga el token desde settings (solo una vez)
-   */
-  private async loadGitHubToken(): Promise<void> {
-    const token = await this.settingsHelper.getRequiredSetting('githubToken')
-    const branch = await this.settingsHelper.getRequiredSetting(
-      'githubBranchName'
-    )
-
-    await this.ctx.clients.github.init(token, branch)
   }
 
   /**

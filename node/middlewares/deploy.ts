@@ -21,27 +21,32 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
 
     await buildCommand.execute()
 
+    // Si la página fue renombrada en el CMS hay que sacar del theme la versión
+    // vieja. Corre antes del commit porque la ubicación del archivo viejo se
+    // resuelve leyendo routes.json, y el commit es el que después lo reescribe.
+    const removedRouteKeys: string[] = []
+
+    if (params.section === 'custom-page' && params.previousSlug) {
+      const deleteCommand = new DeleteCustomPageCommand(
+        params.section,
+        data as CustomPagesData,
+        ctx,
+        params.previousSlug
+      )
+
+      await deleteCommand.execute()
+      removedRouteKeys.push(...deleteCommand.removedRouteKeys)
+    }
+
     const commitCommand = new CommitJsonCommand(
       params.section,
       data,
       ctx,
-      buildCommand.generatedFiles
+      buildCommand.generatedFiles,
+      removedRouteKeys
     )
 
     const commands: Command[] = [commitCommand]
-
-    // Si la página fue renombrada en el CMS hay que borrar la versión vieja.
-    // Va después del commit: si publicar la nueva falla, la vieja sigue en pie.
-    if (params.section === 'custom-page' && params.previousSlug) {
-      commands.push(
-        new DeleteCustomPageCommand(
-          params.section,
-          data as CustomPagesData,
-          ctx,
-          params.previousSlug
-        )
-      )
-    }
 
     // Los comandos son una pipeline: cada uno depende del anterior, por eso
     // se ejecutan en serie y no con Promise.all.

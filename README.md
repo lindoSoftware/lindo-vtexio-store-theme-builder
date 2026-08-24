@@ -122,22 +122,34 @@ en el mismo request:
 }
 ```
 
-Con eso, después de publicar la página nueva, `DeleteCustomPageCommand`:
+Con eso, `DeleteCustomPageCommand` corre **antes** del commit y:
 
 1. Busca `store.custom#<previousSlug>` en `routes.json` — es la única fuente que sabe
    con qué `path` se publicó la página vieja.
 2. Borra `store/blocks/pages/custom/<path>/<previousSlug>.jsonc`.
-3. Commitea `routes.json` sin esa entrada.
+3. Deja la key en `removedRouteKeys`, que después consume `CommitJsonCommand`.
 
-El borrado corre **después** del commit de la página nueva: si publicarla falla, la
-vieja sigue en pie. Es una operación best-effort y nunca rompe el deploy — se saltea
-con un warning si el `previousSlug` no es válido, si no tiene ruta publicada, o si
-coincide con una de las páginas que se acaban de publicar (borrarla dejaría el theme
-sin la página recién generada). Si la ruta existe pero el `.jsonc` ya no está, igual
-se limpia la entrada de `routes.json`.
+Es una operación best-effort y nunca rompe el deploy: se saltea con un warning si el
+`previousSlug` no es válido, si no tiene ruta publicada, o si coincide con una de las
+páginas que se acaban de publicar (borrarla dejaría el theme sin la página recién
+generada). Si la ruta existe pero el `.jsonc` ya no está, la key igual se da de baja,
+así un deploy que falló a mitad de camino se termina de limpiar en el reintento.
 
 El `previousSlug` se normaliza con `BlockNameHelper.sanitizeSlug`, igual que en el
 build, así que tiene que llegar tal cual estaba el slug en el CMS.
+
+#### Por qué el borrado no escribe `routes.json`
+
+`routes.json` se escribe **una sola vez por deploy**, siempre desde
+`CommitJsonCommand`, y siempre como `{ ...loQueHayEnElRepo, ...lasRutasGeneradas }`
+menos las keys dadas de baja. Que las rutas generadas se mergeen por encima es lo que
+hace que el archivo no dependa de que la lectura de GitHub esté al día.
+
+Un segundo componente que leyera y reescribiera el archivo en el mismo deploy no
+tendría esa garantía: si su lectura llega desactualizada —la API de contenidos de
+GitHub puede tardar en reflejar un commit recién hecho— escribiría un `routes.json`
+sin la página que se acababa de publicar. Por eso el borrado solo *reporta* la key y
+no toca el archivo.
 
 ### Bloques soportados
 

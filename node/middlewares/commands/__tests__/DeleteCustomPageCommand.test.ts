@@ -62,7 +62,22 @@ function pagesWith(...slugs: string[]): CustomPagesData {
 }
 
 describe('DeleteCustomPageCommand', () => {
-  it('borra el .jsonc viejo y saca su ruta de routes.json', async () => {
+  it('borra el .jsonc viejo y reporta la ruta a dar de baja', async () => {
+    const { ctx, github } = buildCtx()
+    const command = new DeleteCustomPageCommand(
+      'custom-page',
+      pagesWith('nueva-pagina'),
+      ctx,
+      'pagina-vieja'
+    )
+
+    await command.execute()
+
+    expect(github.deleteFile).toHaveBeenCalledWith(OLD_PAGE_FILE, 'page-sha')
+    expect(command.removedRouteKeys).toEqual(['store.custom#pagina-vieja'])
+  })
+
+  it('nunca escribe routes.json: de eso se encarga el commit', async () => {
     const { ctx, github } = buildCtx()
 
     await new DeleteCustomPageCommand(
@@ -72,29 +87,23 @@ describe('DeleteCustomPageCommand', () => {
       'pagina-vieja'
     ).execute()
 
-    expect(github.deleteFile).toHaveBeenCalledWith(OLD_PAGE_FILE, 'page-sha')
-
-    const [path, content] = github.createOrUpdateFile.mock.calls[0]
-
-    expect(path).toBe(ROUTES_FILE_PATH)
-    expect(JSON.parse(content)).toEqual({
-      'store.custom#nueva-pagina': { path: '/nueva-pagina' },
-    })
+    expect(github.createOrUpdateFile).not.toHaveBeenCalled()
   })
 
   it('normaliza el previousSlug igual que el build', async () => {
     const { ctx, github } = buildCtx()
-
-    await new DeleteCustomPageCommand(
+    const command = new DeleteCustomPageCommand(
       'custom-page',
       pagesWith('nueva-pagina'),
       ctx,
       'Página Vieja'
-    ).execute()
+    )
+
+    await command.execute()
 
     // "Página Vieja" sanitizado es "p-gina-vieja", que no está en routes.json
     expect(github.deleteFile).not.toHaveBeenCalled()
-    expect(github.createOrUpdateFile).not.toHaveBeenCalled()
+    expect(command.removedRouteKeys).toEqual([])
   })
 
   it('no borra si el previousSlug es una página de este mismo deploy', async () => {
@@ -109,21 +118,21 @@ describe('DeleteCustomPageCommand', () => {
 
     expect(github.init).not.toHaveBeenCalled()
     expect(github.deleteFile).not.toHaveBeenCalled()
-    expect(github.createOrUpdateFile).not.toHaveBeenCalled()
   })
 
   it('no hace nada si el previousSlug no tiene ruta publicada', async () => {
     const { ctx, github } = buildCtx()
-
-    await new DeleteCustomPageCommand(
+    const command = new DeleteCustomPageCommand(
       'custom-page',
       pagesWith('nueva-pagina'),
       ctx,
       'jamas-existio'
-    ).execute()
+    )
+
+    await command.execute()
 
     expect(github.deleteFile).not.toHaveBeenCalled()
-    expect(github.createOrUpdateFile).not.toHaveBeenCalled()
+    expect(command.removedRouteKeys).toEqual([])
   })
 
   it('no hace nada si el previousSlug queda vacío al sanitizar', async () => {
@@ -140,7 +149,7 @@ describe('DeleteCustomPageCommand', () => {
     expect(github.getFileContent).not.toHaveBeenCalled()
   })
 
-  it('saca la ruta aunque el archivo ya no exista en el repo', async () => {
+  it('da de baja la ruta aunque el archivo ya no exista en el repo', async () => {
     const { ctx, github } = buildCtx()
 
     github.getFileContent.mockImplementation(
@@ -153,19 +162,16 @@ describe('DeleteCustomPageCommand', () => {
       }
     )
 
-    await new DeleteCustomPageCommand(
+    const command = new DeleteCustomPageCommand(
       'custom-page',
       pagesWith('nueva-pagina'),
       ctx,
       'pagina-vieja'
-    ).execute()
+    )
+
+    await command.execute()
 
     expect(github.deleteFile).not.toHaveBeenCalled()
-
-    const [, content] = github.createOrUpdateFile.mock.calls[0]
-
-    expect(JSON.parse(content)).toEqual({
-      'store.custom#nueva-pagina': { path: '/nueva-pagina' },
-    })
+    expect(command.removedRouteKeys).toEqual(['store.custom#pagina-vieja'])
   })
 })

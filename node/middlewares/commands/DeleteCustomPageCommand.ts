@@ -4,21 +4,26 @@ import { BlockNameHelper } from '../../utils/BlockNameHelper'
 import { initGitHubClient } from '../../utils/github.helper'
 import env from '../../env'
 
-/** Ruta del archivo de rutas dentro del store theme. */
-const ROUTES_FILE_PATH = 'store/routes.json'
-
 type Routes = Record<string, { path: string }>
 
 /**
- * Borra del store theme una custom page que quedó vieja: elimina su `.jsonc` y
- * saca su entrada de `routes.json`.
+ * Borra del store theme el `.jsonc` de una custom page que quedó vieja y expone
+ * en `removedRouteKeys` la entrada de `routes.json` que hay que dar de baja.
  *
  * Se dispara cuando el request de deploy trae `previousSlug`, es decir cuando la
  * página fue renombrada (o eliminada) en el CMS. La ubicación del archivo viejo
  * se resuelve desde `routes.json`, que es la única fuente que conoce el `path`
  * con el que se publicó.
+ *
+ * Este comando NO escribe `routes.json`: la baja la aplica `CommitJsonCommand`
+ * en el mismo merge con el que publica las rutas nuevas. De esa forma hay una
+ * sola escritura del archivo por deploy y una lectura desactualizada nunca
+ * puede pisar lo que se acaba de publicar.
  */
 export class DeleteCustomPageCommand extends Command<'custom-page'> {
+  /** Keys de `routes.json` que quedaron viejas y hay que sacar en el commit. */
+  public readonly removedRouteKeys: string[] = []
+
   private readonly ctx: Context
   private readonly previousSlug: string
 
@@ -70,11 +75,12 @@ export class DeleteCustomPageCommand extends Command<'custom-page'> {
 
     await this.deletePageFile(slug, route.path)
 
-    delete routes[pageKey]
-    await this.commitRoutes(routes)
+    // La ruta se da de baja aunque el archivo ya no estuviera: así un deploy que
+    // falló a mitad de camino se termina de limpiar en el reintento.
+    this.removedRouteKeys.push(pageKey)
 
     this.ctx.vtex.logger.info({
-      message: `[DeleteCustomPageCommand] Removed custom page "${slug}" from the store theme.`,
+      message: `[DeleteCustomPageCommand] Custom page "${slug}" removed. Route "${pageKey}" will be dropped from routes.json.`,
     })
   }
 
@@ -86,7 +92,9 @@ export class DeleteCustomPageCommand extends Command<'custom-page'> {
   }
 
   private async readRoutes(): Promise<Routes | null> {
-    const file = await this.ctx.clients.github.getFileContent(ROUTES_FILE_PATH)
+    const file = await this.ctx.clients.github.getFileContent(
+      env.ROUTES_FILE_PATH
+    )
 
     if (!file.exists || !file.content) {
       return null
@@ -126,20 +134,5 @@ export class DeleteCustomPageCommand extends Command<'custom-page'> {
     this.ctx.vtex.logger.info({
       message: `[DeleteCustomPageCommand] Deleted file: ${filePath}`,
     })
-  }
-
-  private async commitRoutes(routes: Routes): Promise<void> {
-    const res = await this.ctx.clients.github.createOrUpdateFile(
-      ROUTES_FILE_PATH,
-      JSON.stringify(routes, null, 2)
-    )
-
-    if (res?.data?.error) {
-      this.ctx.vtex.logger.error({
-        message: `[DeleteCustomPageCommand] Error updating ${ROUTES_FILE_PATH}`,
-        error: res.data.error,
-      })
-      throw res.data.error
-    }
   }
 }

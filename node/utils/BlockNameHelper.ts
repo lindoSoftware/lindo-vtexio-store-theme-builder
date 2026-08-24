@@ -8,13 +8,15 @@ export class BlockNameHelper {
   constructor(pageSlug: string) {
     // Crear un identificador único basado en el slug
     // Usamos el slug directamente para mejor legibilidad en lugar de hash
-    this.pageIdentifier = this.sanitizeSlug(pageSlug)
+    this.pageIdentifier = BlockNameHelper.sanitizeSlug(pageSlug)
   }
 
   /**
-   * Sanitiza el slug para que sea válido como parte de un nombre de bloque
+   * Sanitiza el slug para que sea válido como parte de un nombre de bloque,
+   * de una key de ruta y de un nombre de archivo.
+   * Es idempotente: aplicarlo sobre un slug ya sanitizado devuelve lo mismo.
    */
-  private sanitizeSlug(slug: string): string {
+  public static sanitizeSlug(slug: string): string {
     // Reemplazar caracteres no válidos y mantener solo alfanuméricos y guiones
     return slug
       .toLowerCase()

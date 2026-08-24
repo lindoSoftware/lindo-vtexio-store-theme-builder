@@ -27,6 +27,17 @@ export class CommitJsonCommand<
    */
   public async execute(): Promise<void> {
     try {
+      // Sin archivos generados no hay nada para commitear: se evita incluso
+      // pedir el token de GitHub.
+      if (!this.files.length) {
+        this.ctx.vtex.logger.info({
+          message:
+            '[CommitJsonCommand] No files to commit. Skipping GitHub sync.',
+        })
+
+        return
+      }
+
       await this.loadGitHubToken()
 
       for (const file of this.files) {

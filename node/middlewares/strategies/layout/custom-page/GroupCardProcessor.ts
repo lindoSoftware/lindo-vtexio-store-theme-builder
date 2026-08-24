@@ -3,7 +3,7 @@ import { mapCardContent } from '../../../../utils/card.helper'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class GroupCardProcessor extends CustomPageBlockProcessor<ComponentSharedGroupCard> {
-  process(
+  public process(
     section: ComponentSharedGroupCard,
     pageKey: string,
     index: number

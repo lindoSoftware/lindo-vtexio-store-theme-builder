@@ -5,7 +5,7 @@ import { BlockProcessor } from './BlockProcessor'
 export class ClusterBlockProcessor extends BlockProcessor<ClusterBlock> {
   private counter = 0
 
-  process(section: ClusterBlock): void {
+  public process(section: ClusterBlock): void {
     if (!isWithinDateRange(section.beginning, section.expiration)) return
 
     this.counter++

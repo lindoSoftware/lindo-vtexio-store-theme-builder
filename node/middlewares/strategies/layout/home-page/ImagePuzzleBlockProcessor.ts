@@ -3,7 +3,7 @@ import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
 
 export class ImagePuzzleBlockProcessor extends BlockProcessor<ImagePuzzleBlock> {
-  process(section: ImagePuzzleBlock, index: number): void {
+  public process(section: ImagePuzzleBlock, index: number): void {
     if (!isWithinDateRange(section.beginning, section.expiration)) return
 
     const blockName = `image-puzzle#image-puzzle-${index + 1}`

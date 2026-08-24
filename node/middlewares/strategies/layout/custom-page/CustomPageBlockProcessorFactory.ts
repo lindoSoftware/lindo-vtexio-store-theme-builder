@@ -49,7 +49,9 @@ export class CustomPageBlockProcessorFactory {
     ])
   }
 
-  getProcessor(appName: string): CustomPageBlockProcessor<any> | undefined {
+  public getProcessor(
+    appName: string
+  ): CustomPageBlockProcessor<any> | undefined {
     return this.processors.get(appName)
   }
 }

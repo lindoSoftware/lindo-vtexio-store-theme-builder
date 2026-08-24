@@ -7,7 +7,7 @@ export interface StrapiConfig {
 }
 
 export class StrapiConfigService {
-  static async getConfig(ctx: Context): Promise<StrapiConfig> {
+  public static async getConfig(ctx: Context): Promise<StrapiConfig> {
     const settings = new SettingsHelper(ctx)
 
     return {

@@ -7,11 +7,11 @@ import { BlockProcessorFactory } from '../layout/home-page/BlockProcessorFactory
 export class HomePageBuildJsonStrategy
   implements BuildJsonStrategy<HomePageData>
 {
-  readonly section = 'home-page' as const
+  public readonly section = 'home-page' as const
 
   constructor(private strapiURL: string) {}
 
-  async build(data: HomePageData): Promise<GeneratedFile[]> {
+  public async build(data: HomePageData): Promise<GeneratedFile[]> {
     const layoutBuilder = new VtexLayoutBuilder()
     const processorFactory = new BlockProcessorFactory(
       layoutBuilder,

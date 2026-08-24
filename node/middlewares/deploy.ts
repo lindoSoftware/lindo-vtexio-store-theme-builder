@@ -28,7 +28,12 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
 
     const commands: Command[] = [commitCommand]
 
-    for (const command of commands) await command.execute()
+    // Los comandos son una pipeline: cada uno depende del anterior, por eso
+    // se ejecutan en serie y no con Promise.all.
+    for (const command of commands) {
+      // eslint-disable-next-line no-await-in-loop
+      await command.execute()
+    }
 
     const response: DeployResponse = {
       success: true,

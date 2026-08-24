@@ -6,7 +6,7 @@ import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
 
 export class MultipleStaticBannerProcessor extends BlockProcessor<MultipleStaticBannerBlock> {
-  process(section: MultipleStaticBannerBlock): void {
+  public process(section: MultipleStaticBannerBlock): void {
     const validBanners = section.staticBanners.filter((b) =>
       isWithinDateRange(b.beginning, b.expiration)
     )

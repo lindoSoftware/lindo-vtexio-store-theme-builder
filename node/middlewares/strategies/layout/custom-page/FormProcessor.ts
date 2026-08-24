@@ -2,7 +2,11 @@ import type { ComponentSharedForm } from '../../../../typings/custompage-respons
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class FormProcessor extends CustomPageBlockProcessor<ComponentSharedForm> {
-  process(section: ComponentSharedForm, pageKey: string, index: number): void {
+  public process(
+    section: ComponentSharedForm,
+    pageKey: string,
+    index: number
+  ): void {
     const { schema } = section
     const suffix = `-${schema.name}-${index}`
 

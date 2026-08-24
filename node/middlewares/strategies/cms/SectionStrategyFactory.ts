@@ -11,7 +11,7 @@ const strategies = {
 } as const
 
 export class SectionStrategyFactory {
-  static create<TSection extends keyof SectionDataMap>(
+  public static create<TSection extends keyof SectionDataMap>(
     section: TSection
   ): SectionStrategy<TSection> {
     const StrategyClass = strategies[section]

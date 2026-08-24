@@ -3,11 +3,9 @@ import type { NavbarData } from '../../../typings/navbar-response'
 import type { GeneratedFile } from '../../commands/BuildJsonCommand'
 
 export class NavbarBuildJsonStrategy implements BuildJsonStrategy<NavbarData> {
-  readonly section = 'navbar' as const
+  public readonly section = 'navbar' as const
 
-  constructor(_strapiURL: string) {}
-
-  async build(data: NavbarData): Promise<GeneratedFile[]> {
+  public async build(data: NavbarData): Promise<GeneratedFile[]> {
     const layoutJson: Record<string, any> = {
       'custom-navbar': {
         props: { items: [] },

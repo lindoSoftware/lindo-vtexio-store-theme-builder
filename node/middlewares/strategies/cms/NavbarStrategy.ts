@@ -4,7 +4,7 @@ import { StrapiContentClient } from '../../../clients/strapi'
 import type { StrapiConfig } from '../../../services/StrapiConfigService'
 
 export class NavbarStrategy implements SectionStrategy<'navbar'> {
-  async getData(
+  public async getData(
     ctx: Context,
     _?: any,
     strapi?: StrapiConfig

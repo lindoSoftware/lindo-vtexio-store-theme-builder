@@ -2,7 +2,11 @@ import type { ComponentSharedFAQ } from '../../../../typings/custompage-response
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
-  process(section: ComponentSharedFAQ, pageKey: string, index: number): void {
+  public process(
+    section: ComponentSharedFAQ,
+    pageKey: string,
+    index: number
+  ): void {
     // 1. Definición de IDs siguiendo la estructura de faq.jsonc
     // Usamos wrappers para envolver el grupo de FAQs
     const rowBlock = this.generateBlockName(

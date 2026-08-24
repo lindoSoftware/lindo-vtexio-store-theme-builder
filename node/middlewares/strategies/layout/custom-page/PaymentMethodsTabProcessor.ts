@@ -11,7 +11,7 @@ export class PaymentMethodsTabProcessor extends CustomPageBlockProcessor<Payment
   private blockName?: string
   private contentAccumulator: any[] = []
 
-  process(section: PaymentTabContent, pageKey: string, _: number): void {
+  public process(section: PaymentTabContent, pageKey: string, _: number): void {
     // Crear el bloque una sola vez
     if (!this.blockName) {
       this.blockName = this.generateBlockName(

@@ -5,7 +5,7 @@ import { BlockProcessor } from './BlockProcessor'
 export class SliderBlockProcessor extends BlockProcessor<SliderBlock> {
   private counter = 0
 
-  process(section: SliderBlock): void {
+  public process(section: SliderBlock): void {
     const validBanners = section.banners.filter((b) =>
       isWithinDateRange(b.beginning, b.expiration)
     )

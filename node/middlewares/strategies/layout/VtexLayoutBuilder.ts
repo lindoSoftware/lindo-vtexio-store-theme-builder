@@ -3,7 +3,7 @@ import type { BlockBuilder, LayoutBuilder } from '../../../typings/builder'
 export class VtexLayoutBuilder implements LayoutBuilder {
   private layout: Record<string, any> = {}
 
-  initializePage(pageKey: string): void {
+  public initializePage(pageKey: string): void {
     if (!this.layout[pageKey]) {
       this.layout[pageKey] = {
         parent: { storeWrapper: 'storeWrapper' },
@@ -12,7 +12,7 @@ export class VtexLayoutBuilder implements LayoutBuilder {
     }
   }
 
-  addBlock(parentKey: string, blockName: string): void {
+  public addBlock(parentKey: string, blockName: string): void {
     if (!this.layout[parentKey]) {
       throw new Error(`Parent key "${parentKey}" does not exist`)
     }
@@ -20,7 +20,7 @@ export class VtexLayoutBuilder implements LayoutBuilder {
     this.layout[parentKey].blocks.push(blockName)
   }
 
-  setBlockConfig(blockName: string, config: BlockBuilder): void {
+  public setBlockConfig(blockName: string, config: BlockBuilder): void {
     this.layout[blockName] = {
       ...(config.blocks && { blocks: config.blocks }),
       ...(config.children && { children: config.children }),
@@ -28,7 +28,7 @@ export class VtexLayoutBuilder implements LayoutBuilder {
     }
   }
 
-  build(): Record<string, any> {
+  public build(): Record<string, any> {
     return this.layout
   }
 }

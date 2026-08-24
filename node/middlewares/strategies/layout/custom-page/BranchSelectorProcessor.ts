@@ -2,7 +2,7 @@ import type { ComponentSharedBranchSelector } from '../../../../typings/custompa
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class BranchSelectorProcessor extends CustomPageBlockProcessor<ComponentSharedBranchSelector> {
-  process(
+  public process(
     section: ComponentSharedBranchSelector,
     pageKey: string,
     index: number

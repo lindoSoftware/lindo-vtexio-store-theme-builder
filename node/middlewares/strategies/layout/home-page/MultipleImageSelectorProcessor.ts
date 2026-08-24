@@ -7,7 +7,7 @@ import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
 
 export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImageSelectorBlock> {
-  process(section: MultipleImageSelectorBlock): void {
+  public process(section: MultipleImageSelectorBlock): void {
     const validSelectors = section.imageSelectors.filter((s) =>
       isWithinDateRange(s.beginning, s.expiration)
     )

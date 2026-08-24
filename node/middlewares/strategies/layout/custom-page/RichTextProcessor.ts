@@ -2,7 +2,7 @@ import type { ComponentSharedRichText } from '../../../../typings/custompage-res
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class RichTextProcessor extends CustomPageBlockProcessor<ComponentSharedRichText> {
-  process(
+  public process(
     section: ComponentSharedRichText,
     pageKey: string,
     index: number

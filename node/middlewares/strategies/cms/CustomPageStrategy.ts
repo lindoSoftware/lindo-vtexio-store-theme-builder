@@ -4,7 +4,7 @@ import { StrapiContentClient } from '../../../clients/strapi'
 import type { StrapiConfig } from '../../../services/StrapiConfigService'
 
 export class CustomPageStrategy implements SectionStrategy<'custom-page'> {
-  async getData(
+  public async getData(
     ctx: Context,
     variables?: Record<string, unknown> | null,
     strapi?: StrapiConfig

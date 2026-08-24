@@ -17,11 +17,11 @@ interface NormalizedPage {
 export class CustomPageBuildJsonStrategy
   implements BuildJsonStrategy<CustomPagesData>
 {
-  readonly section = 'custom-page' as const
+  public readonly section = 'custom-page' as const
 
   constructor(private strapiURL: string) {}
 
-  async build(data: CustomPagesData): Promise<GeneratedFile[]> {
+  public async build(data: CustomPagesData): Promise<GeneratedFile[]> {
     const generatedFiles: GeneratedFile[] = []
     const pages = this.normalizePages(data.customPages)
 

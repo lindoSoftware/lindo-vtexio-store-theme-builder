@@ -35,7 +35,7 @@ export class BlockProcessorFactory {
     ])
   }
 
-  getProcessor(appName: string): BlockProcessor<any> | undefined {
+  public getProcessor(appName: string): BlockProcessor<any> | undefined {
     return this.processors.get(appName)
   }
 }

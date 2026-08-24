@@ -23,7 +23,7 @@ export class BuildJsonCommand<
     this.strapiURL = strapiURL
   }
 
-  async execute(): Promise<void> {
+  public async execute(): Promise<void> {
     const strategy = BuildJsonStrategyFactory.create(
       this.section,
       this.strapiURL

@@ -40,7 +40,10 @@ export class CommitJsonCommand<
 
       await this.loadGitHubToken()
 
+      // Se commitea en serie: cada commit depende del SHA que dejó el
+      // anterior, así que no se pueden paralelizar.
       for (const file of this.files) {
+        // eslint-disable-next-line no-await-in-loop
         await this.commitFile(file)
       }
 

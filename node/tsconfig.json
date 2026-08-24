@@ -5,6 +5,7 @@
     "target": "es2019",
     "module": "commonjs",
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "allowJs": false,
     "noImplicitReturns": true,
     "noUnusedLocals": true,

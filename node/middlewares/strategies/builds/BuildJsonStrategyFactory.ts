@@ -1,8 +1,8 @@
 import { NavbarBuildJsonStrategy } from './NavbarBuildJsonStrategy'
 import { CustomPageBuildJsonStrategy } from './CustomPageBuildJsonStrategy'
 import { HomePageBuildJsonStrategy } from './HomePageBuildJsonStrategy'
-import { BuildJsonStrategy } from './BuildJsonStrategy'
-import { SectionDataMap } from '../../../typings/sections-map'
+import type { BuildJsonStrategy } from './BuildJsonStrategy'
+import type { SectionDataMap } from '../../../typings/sections-map'
 
 const strategyMap = {
   navbar: NavbarBuildJsonStrategy,
@@ -16,6 +16,9 @@ export class BuildJsonStrategyFactory {
     strapiURL: string
   ): BuildJsonStrategy<SectionDataMap[TSection]> {
     const Strategy = strategyMap[section]
-    return new Strategy(strapiURL) as BuildJsonStrategy<SectionDataMap[TSection]>
+
+    return new Strategy(strapiURL) as BuildJsonStrategy<
+      SectionDataMap[TSection]
+    >
   }
 }

@@ -10,6 +10,7 @@ export class SettingsHelper {
 
   private async getSettings(): Promise<AppSettings> {
     const appId = process.env.VTEX_APP_ID ?? ''
+
     return this.ctx.clients.apps.getAppSettings(appId)
   }
 
@@ -17,6 +18,7 @@ export class SettingsHelper {
     key: K
   ): Promise<AppSettings[K] | undefined> {
     const settings = await this.getSettings()
+
     return settings?.[key]
   }
 

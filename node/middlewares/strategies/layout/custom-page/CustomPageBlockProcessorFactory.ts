@@ -1,7 +1,7 @@
-import { LayoutBuilder } from '../../../../typings/builder'
+import type { LayoutBuilder } from '../../../../typings/builder'
 import { BranchSelectorProcessor } from './BranchSelectorProcessor'
 import { CUSTOMPAGE_APPNAMES } from './custompage-constants'
-import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
+import type { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 import { FAQProcessor } from './FAQProcessor'
 import { FormProcessor } from './FormProcessor'
 import { GroupCardProcessor } from './GroupCardProcessor'
@@ -11,7 +11,11 @@ import { RichTextProcessor } from './RichTextProcessor'
 export class CustomPageBlockProcessorFactory {
   private processors: Map<string, CustomPageBlockProcessor<any>>
 
-  constructor(layoutBuilder: LayoutBuilder, pageSlug: string, strapiURL: string) {
+  constructor(
+    layoutBuilder: LayoutBuilder,
+    pageSlug: string,
+    strapiURL: string
+  ) {
     const paymentMethodsTabProcessor = new PaymentMethodsTabProcessor(
       layoutBuilder,
       pageSlug,
@@ -30,8 +34,14 @@ export class CustomPageBlockProcessorFactory {
 
       [CUSTOMPAGE_APPNAMES.TAB, paymentMethodsTabProcessor],
       [CUSTOMPAGE_APPNAMES.TAB_GROUP, paymentMethodsTabProcessor],
-      [CUSTOMPAGE_APPNAMES.FORM, new FormProcessor(layoutBuilder, pageSlug, strapiURL)],
-      [CUSTOMPAGE_APPNAMES.FAQ, new FAQProcessor(layoutBuilder, pageSlug, strapiURL)],
+      [
+        CUSTOMPAGE_APPNAMES.FORM,
+        new FormProcessor(layoutBuilder, pageSlug, strapiURL),
+      ],
+      [
+        CUSTOMPAGE_APPNAMES.FAQ,
+        new FAQProcessor(layoutBuilder, pageSlug, strapiURL),
+      ],
       [
         CUSTOMPAGE_APPNAMES.BRANCH_SELECTOR,
         new BranchSelectorProcessor(layoutBuilder, pageSlug, strapiURL),

@@ -1,4 +1,4 @@
-import { SectionDataMap } from './sections-map'
+import type { SectionDataMap } from './sections-map'
 
 export abstract class Command<
   TSection extends keyof SectionDataMap = keyof SectionDataMap

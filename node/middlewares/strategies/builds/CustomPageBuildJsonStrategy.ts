@@ -1,6 +1,6 @@
 import type { BuildJsonStrategy } from './BuildJsonStrategy'
 import type { CustomPagesData } from '../../../typings/custompage-response'
-import { GeneratedFile } from '../../commands/BuildJsonCommand'
+import type { GeneratedFile } from '../../commands/BuildJsonCommand'
 import { VtexLayoutBuilder } from '../layout/VtexLayoutBuilder'
 import { CustomPageBlockProcessorFactory } from '../layout/custom-page/CustomPageBlockProcessorFactory'
 import { BlockNameHelper } from '../../../utils/BlockNameHelper'
@@ -29,6 +29,7 @@ export class CustomPageBuildJsonStrategy
     // el routes.json para no generar un commit sin cambios.
     if (!pages.length) {
       console.warn('No valid custom pages to build. Skipping deploy.')
+
       return generatedFiles
     }
 
@@ -43,6 +44,7 @@ export class CustomPageBuildJsonStrategy
 
       // Cambiar 'store.home' por el identificador de la página custom
       const pageKey = `store.custom#${slug}`
+
       layoutBuilder.initializePage(pageKey)
 
       if (page.title) {
@@ -120,6 +122,7 @@ export class CustomPageBuildJsonStrategy
 
     // Generar archivo routes.json con todas las rutas
     const routesFile = await this.buildRoutesFile(pages)
+
     generatedFiles.push(routesFile)
 
     return generatedFiles
@@ -161,6 +164,7 @@ export class CustomPageBuildJsonStrategy
     // Agregar todas las rutas de las páginas custom
     for (const { page, slug } of pages) {
       const pageKey = `store.custom#${slug}`
+
       routes[pageKey] = {
         path: `/${page.path}`.replace(/\/+/g, '/'),
       }

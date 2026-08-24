@@ -1,4 +1,4 @@
-import { ComponentSharedBranchSelector } from '../../../../typings/custompage-response'
+import type { ComponentSharedBranchSelector } from '../../../../typings/custompage-response'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class BranchSelectorProcessor extends CustomPageBlockProcessor<ComponentSharedBranchSelector> {
@@ -11,10 +11,12 @@ export class BranchSelectorProcessor extends CustomPageBlockProcessor<ComponentS
       'flex-layout.row',
       `branch-selector-${index}`
     )
+
     const colBlock = this.generateBlockName(
       'flex-layout.col',
       `branch-selector-${index}`
     )
+
     const branchBlock = this.generateBlockName('branch-selector', `${index}`)
 
     // 1. Agregar el contenedor principal a la página custom

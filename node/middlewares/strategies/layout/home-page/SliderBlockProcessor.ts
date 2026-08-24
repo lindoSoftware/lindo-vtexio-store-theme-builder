@@ -1,4 +1,4 @@
-import { SliderBlock } from '../../../../typings/homepage-response'
+import type { SliderBlock } from '../../../../typings/homepage-response'
 import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
 

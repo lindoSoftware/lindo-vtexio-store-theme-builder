@@ -1,11 +1,12 @@
 import { ExternalClient } from '@vtex/api'
 import { Octokit } from '@octokit/rest'
 import type { IOContext, InstanceOptions, IOResponse } from '@vtex/api'
+
 import ENV from '../env'
 
 export default class GitHubClient extends ExternalClient {
   private octokit: Octokit
-  private branch: string = 'main'
+  private branch = 'main'
 
   constructor(context: IOContext, options?: InstanceOptions) {
     super(ENV.GIT_API_URL ?? '', context, options)
@@ -33,6 +34,7 @@ export default class GitHubClient extends ExternalClient {
         const content = Buffer.from(response.data.content, 'base64').toString(
           'utf8'
         )
+
         return { sha: response.data.sha, exists: true, content }
       }
 
@@ -41,6 +43,7 @@ export default class GitHubClient extends ExternalClient {
       if (error.status === 404) {
         return { exists: false }
       }
+
       throw error
     }
   }
@@ -66,6 +69,7 @@ export default class GitHubClient extends ExternalClient {
       if (error.status === 404) {
         return { exists: false }
       }
+
       throw error
     }
   }
@@ -79,7 +83,7 @@ export default class GitHubClient extends ExternalClient {
     try {
       const fileInfo = await this.getFileInfo(path)
       const isUpdate = fileInfo.exists
-      const sha = fileInfo.sha
+      const { sha } = fileInfo
 
       // ✅ Si el archivo existe, obtener su contenido actual
       if (isUpdate) {

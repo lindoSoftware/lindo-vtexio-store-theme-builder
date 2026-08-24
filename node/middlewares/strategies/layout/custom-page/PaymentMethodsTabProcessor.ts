@@ -1,4 +1,4 @@
-import {
+import type {
   ComponentSharedTab,
   ComponentSharedTabGroup,
 } from '../../../../typings/custompage-response'

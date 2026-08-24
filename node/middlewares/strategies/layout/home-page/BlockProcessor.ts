@@ -1,4 +1,4 @@
-import { BlockBuilder, LayoutBuilder } from "../../../../typings/builder"
+import type { BlockBuilder, LayoutBuilder } from '../../../../typings/builder'
 
 export abstract class BlockProcessor<T> {
   constructor(

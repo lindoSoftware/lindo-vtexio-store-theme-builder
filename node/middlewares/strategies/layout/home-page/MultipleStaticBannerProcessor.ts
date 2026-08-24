@@ -1,7 +1,9 @@
-import { MultipleStaticBannerBlock, StaticBannerGroup } from "../../../../typings/homepage-response"
-import { isWithinDateRange } from "../../../../utils/isWithinDateRange"
-import { BlockProcessor } from "./BlockProcessor"
-
+import type {
+  MultipleStaticBannerBlock,
+  StaticBannerGroup,
+} from '../../../../typings/homepage-response'
+import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
+import { BlockProcessor } from './BlockProcessor'
 
 export class MultipleStaticBannerProcessor extends BlockProcessor<MultipleStaticBannerBlock> {
   process(section: MultipleStaticBannerBlock): void {

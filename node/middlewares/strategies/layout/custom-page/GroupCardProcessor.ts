@@ -1,4 +1,4 @@
-import { ComponentSharedGroupCard } from '../../../../typings/custompage-response'
+import type { ComponentSharedGroupCard } from '../../../../typings/custompage-response'
 import { mapCardContent } from '../../../../utils/card.helper'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 

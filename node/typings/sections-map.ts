@@ -1,9 +1,9 @@
-import { NavbarData } from './navbar-response'
-import { CustomPagesData } from './custompage-response'
-import { HomePageData } from './homepage-response'
+import type { NavbarData } from './navbar-response'
+import type { CustomPagesData } from './custompage-response'
+import type { HomePageData } from './homepage-response'
 
 export interface SectionDataMap {
-  'navbar': NavbarData
+  navbar: NavbarData
   'custom-page': CustomPagesData
   'home-page': HomePageData
 }

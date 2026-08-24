@@ -1,6 +1,6 @@
 import type { BuildJsonStrategy } from './BuildJsonStrategy'
 import type { NavbarData } from '../../../typings/navbar-response'
-import { GeneratedFile } from '../../commands/BuildJsonCommand'
+import type { GeneratedFile } from '../../commands/BuildJsonCommand'
 
 export class NavbarBuildJsonStrategy implements BuildJsonStrategy<NavbarData> {
   readonly section = 'navbar' as const

@@ -1,4 +1,4 @@
-import { ImagePuzzleBlock } from '../../../../typings/homepage-response'
+import type { ImagePuzzleBlock } from '../../../../typings/homepage-response'
 import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
 

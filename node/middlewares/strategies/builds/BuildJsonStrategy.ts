@@ -1,4 +1,4 @@
-import { GeneratedFile } from '../../commands/BuildJsonCommand'
+import type { GeneratedFile } from '../../commands/BuildJsonCommand'
 
 export interface BuildJsonStrategy<TData> {
   readonly section: string

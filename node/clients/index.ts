@@ -1,4 +1,5 @@
 import { IOClients } from '@vtex/api'
+
 import GitHubClient from './github'
 
 export class Clients extends IOClients {

@@ -30,7 +30,7 @@ export class BlockNameHelper {
    * @param blockType Tipo de bloque (ej: "rich-text", "flex-layout.row")
    * @param suffix Sufijo adicional (índices, identificadores)
    */
-  public generateBlockName(blockType: string, suffix: string = ''): string {
+  public generateBlockName(blockType: string, suffix = ''): string {
     let blockName = `${blockType}#${this.pageIdentifier}`
 
     if (suffix) {

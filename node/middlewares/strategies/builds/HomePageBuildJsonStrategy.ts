@@ -1,6 +1,6 @@
 import type { BuildJsonStrategy } from './BuildJsonStrategy'
 import type { HomePageData } from '../../../typings/homepage-response'
-import { GeneratedFile } from '../../commands/BuildJsonCommand'
+import type { GeneratedFile } from '../../commands/BuildJsonCommand'
 import { VtexLayoutBuilder } from '../layout/VtexLayoutBuilder'
 import { BlockProcessorFactory } from '../layout/home-page/BlockProcessorFactory'
 
@@ -13,7 +13,10 @@ export class HomePageBuildJsonStrategy
 
   async build(data: HomePageData): Promise<GeneratedFile[]> {
     const layoutBuilder = new VtexLayoutBuilder()
-    const processorFactory = new BlockProcessorFactory(layoutBuilder, this.strapiURL)
+    const processorFactory = new BlockProcessorFactory(
+      layoutBuilder,
+      this.strapiURL
+    )
 
     // Inicializar la página home
     layoutBuilder.initializePage('store.home')

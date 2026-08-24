@@ -1,6 +1,10 @@
-import { ImageItem, ImageSelector, MultipleImageSelectorBlock } from "../../../../typings/homepage-response"
-import { isWithinDateRange } from "../../../../utils/isWithinDateRange"
-import { BlockProcessor } from "./BlockProcessor"
+import type {
+  ImageItem,
+  ImageSelector,
+  MultipleImageSelectorBlock,
+} from '../../../../typings/homepage-response'
+import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
+import { BlockProcessor } from './BlockProcessor'
 
 export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImageSelectorBlock> {
   process(section: MultipleImageSelectorBlock): void {
@@ -104,12 +108,13 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
 
     if (image.image) {
       const imageBlock = `image#img${index + 1}`
+
       this.createBlock(imageBlock, {
         blockName: imageBlock,
         props: {
           src: this.strapiURL + image.image.url,
           width: 65,
-          height: 65
+          height: 65,
         },
       })
       children.push(imageBlock)
@@ -117,6 +122,7 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
 
     if (image.text) {
       const textBlock = `rich-text#title${index + 1}`
+
       this.createBlock(textBlock, {
         blockName: textBlock,
         props: {

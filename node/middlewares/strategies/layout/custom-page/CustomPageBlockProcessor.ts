@@ -1,4 +1,4 @@
-import { BlockBuilder, LayoutBuilder } from '../../../../typings/builder'
+import type { BlockBuilder, LayoutBuilder } from '../../../../typings/builder'
 import { BlockNameHelper } from '../../../../utils/BlockNameHelper'
 
 export abstract class CustomPageBlockProcessor<T> {
@@ -22,7 +22,7 @@ export abstract class CustomPageBlockProcessor<T> {
     this.layoutBuilder.setBlockConfig(blockName, config)
   }
 
-  protected generateBlockName(blockType: string, suffix: string = ''): string {
+  protected generateBlockName(blockType: string, suffix = ''): string {
     return this.blockNameHelper.generateBlockName(blockType, suffix)
   }
 }

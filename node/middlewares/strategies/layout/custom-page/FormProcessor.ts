@@ -1,4 +1,4 @@
-import { ComponentSharedForm } from '../../../../typings/custompage-response'
+import type { ComponentSharedForm } from '../../../../typings/custompage-response'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class FormProcessor extends CustomPageBlockProcessor<ComponentSharedForm> {

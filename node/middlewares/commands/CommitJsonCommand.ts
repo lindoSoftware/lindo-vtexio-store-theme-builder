@@ -82,6 +82,7 @@ export class CommitJsonCommand<
     // Manejo especial para routes.json
     if (file.filename === 'routes.json') {
       await this.commitRoutesFile(filePath, file.content)
+
       return
     }
 

@@ -1,8 +1,8 @@
 import { HomePageStrategy } from './HomePageStrategy'
 import { NavbarStrategy } from './NavbarStrategy'
 import { CustomPageStrategy } from './CustomPageStrategy'
-import { SectionDataMap } from '../../../typings/sections-map'
-import { SectionStrategy } from '../../../typings/section-strategy'
+import type { SectionDataMap } from '../../../typings/sections-map'
+import type { SectionStrategy } from '../../../typings/section-strategy'
 
 const strategies = {
   navbar: NavbarStrategy,

@@ -1,5 +1,5 @@
-import { StrapiConfig } from '../services/StrapiConfigService'
-import { SectionDataMap } from './sections-map'
+import type { StrapiConfig } from '../services/StrapiConfigService'
+import type { SectionDataMap } from './sections-map'
 
 export interface SectionStrategy<TSection extends keyof SectionDataMap> {
   getData(

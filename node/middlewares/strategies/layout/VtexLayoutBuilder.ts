@@ -1,4 +1,4 @@
-import { BlockBuilder, LayoutBuilder } from '../../../typings/builder'
+import type { BlockBuilder, LayoutBuilder } from '../../../typings/builder'
 
 export class VtexLayoutBuilder implements LayoutBuilder {
   private layout: Record<string, any> = {}
@@ -16,6 +16,7 @@ export class VtexLayoutBuilder implements LayoutBuilder {
     if (!this.layout[parentKey]) {
       throw new Error(`Parent key "${parentKey}" does not exist`)
     }
+
     this.layout[parentKey].blocks.push(blockName)
   }
 

@@ -1,6 +1,6 @@
 import type { DeployResponse } from '../typings/deploy-response'
-import { Command } from '../typings/command'
-import { DeployRequestBody } from '../typings/request-body'
+import type { Command } from '../typings/command'
+import type { DeployRequestBody } from '../typings/request-body'
 import { readRequestBodyAsJSON } from '../utils/middleware.helper'
 import { BuildJsonCommand } from './commands/BuildJsonCommand'
 import { SectionStrategyFactory } from './strategies/cms/SectionStrategyFactory'
@@ -16,6 +16,7 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
     const data = await strategy.getData(ctx, params.variables, strapi)
 
     const buildCommand = new BuildJsonCommand(params.section, data, strapi.url)
+
     await buildCommand.execute()
 
     const commitCommand = new CommitJsonCommand(
@@ -26,6 +27,7 @@ export async function deploy(ctx: Context, next: () => Promise<any>) {
     )
 
     const commands: Command[] = [commitCommand]
+
     for (const command of commands) await command.execute()
 
     const response: DeployResponse = {

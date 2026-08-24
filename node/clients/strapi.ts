@@ -1,15 +1,21 @@
-import { ExternalClient, InstanceOptions, IOContext } from '@vtex/api'
-import { CUSTOM_PAGE_QUERY, HOME_PAGE_QUERY, NAVBAR_QUERY } from '../utils/graphql/queries'
-import { HomePageData } from '../typings/homepage-response'
-import { NavbarData } from '../typings/navbar-response'
-import { CustomPagesData } from '../typings/custompage-response'
+import type { InstanceOptions, IOContext } from '@vtex/api'
+import { ExternalClient } from '@vtex/api'
+
+import {
+  CUSTOM_PAGE_QUERY,
+  HOME_PAGE_QUERY,
+  NAVBAR_QUERY,
+} from '../utils/graphql/queries'
+import type { HomePageData } from '../typings/homepage-response'
+import type { NavbarData } from '../typings/navbar-response'
+import type { CustomPagesData } from '../typings/custompage-response'
 
 /**
  * Interfaz genérica para cualquier respuesta GraphQL
  */
 interface GraphQLResponse<T> {
   data: T
-  errors?: { message: string }[]
+  errors?: Array<{ message: string }>
 }
 
 export class StrapiContentClient extends ExternalClient {
@@ -56,6 +62,7 @@ export class StrapiContentClient extends ExternalClient {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : JSON.stringify(error)
+
       throw new Error(`Error executing Strapi GraphQL query: ${message}`)
     }
   }

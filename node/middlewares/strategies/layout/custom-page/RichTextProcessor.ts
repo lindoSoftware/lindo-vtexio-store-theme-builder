@@ -1,4 +1,4 @@
-import { ComponentSharedRichText } from '../../../../typings/custompage-response'
+import type { ComponentSharedRichText } from '../../../../typings/custompage-response'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class RichTextProcessor extends CustomPageBlockProcessor<ComponentSharedRichText> {

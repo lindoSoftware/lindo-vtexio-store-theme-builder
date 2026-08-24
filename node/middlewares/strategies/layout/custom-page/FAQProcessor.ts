@@ -1,13 +1,24 @@
-import { ComponentSharedFAQ } from '../../../../typings/custompage-response'
+import type { ComponentSharedFAQ } from '../../../../typings/custompage-response'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
 export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
   process(section: ComponentSharedFAQ, pageKey: string, index: number): void {
     // 1. Definición de IDs siguiendo la estructura de faq.jsonc
     // Usamos wrappers para envolver el grupo de FAQs
-    const rowBlock = this.generateBlockName('flex-layout.row', `faq-wrapper-${index}`)
-    const colBlock = this.generateBlockName('flex-layout.col', `faq-container-${index}`)
-    const faqGroupBlock = this.generateBlockName('disclosure-layout-group', `faq-${index}`)
+    const rowBlock = this.generateBlockName(
+      'flex-layout.row',
+      `faq-wrapper-${index}`
+    )
+
+    const colBlock = this.generateBlockName(
+      'flex-layout.col',
+      `faq-container-${index}`
+    )
+
+    const faqGroupBlock = this.generateBlockName(
+      'disclosure-layout-group',
+      `faq-${index}`
+    )
 
     // 2. Construir la jerarquía: Página -> Row -> Col -> Group
     this.addToPage(pageKey, rowBlock)
@@ -28,9 +39,21 @@ export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
     section.faqs.forEach((faq, i) => {
       // Combinamos el índice de la sección (index) con el del item (i) para unicidad total
       const itemId = `${index}-${i + 1}`
-      const layoutBlock = this.generateBlockName('disclosure-layout', `faq-${itemId}`)
-      const triggerBlock = this.generateBlockName('disclosure-trigger', `faq-${itemId}`)
-      const contentBlock = this.generateBlockName('disclosure-content', `faq-${itemId}`)
+      const layoutBlock = this.generateBlockName(
+        'disclosure-layout',
+        `faq-${itemId}`
+      )
+
+      const triggerBlock = this.generateBlockName(
+        'disclosure-trigger',
+        `faq-${itemId}`
+      )
+
+      const contentBlock = this.generateBlockName(
+        'disclosure-content',
+        `faq-${itemId}`
+      )
+
       const questionBlock = this.generateBlockName('rich-text', `q-${itemId}`)
       const answerBlock = this.generateBlockName('rich-text', `a-${itemId}`)
 
@@ -46,7 +69,7 @@ export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
       this.createBlock(triggerBlock, {
         blockName: triggerBlock,
         children: [questionBlock],
-        props: { "as": "div" },
+        props: { as: 'div' },
       })
 
       // rich-text#qX (Pregunta)

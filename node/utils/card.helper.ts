@@ -15,6 +15,7 @@ export const mapCardContent = (content: any[], strapiURL: string) => {
         })),
       }
     }
+
     // Si es un text block u otro tipo, lo devolvemos tal cual
     return block
   })

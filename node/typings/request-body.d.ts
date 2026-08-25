@@ -8,6 +8,12 @@ export interface DeployRequestBody {
    * Solo aplica a `custom-page`: la página vieja se borra del store theme.
    */
   previousSlug?: string | null
+  /**
+   * La página se eliminó del CMS. Solo aplica a `custom-page` y requiere
+   * `previousSlug`: no se consulta Strapi ni se publica nada, únicamente se saca
+   * la página del store theme.
+   */
+  deleted?: boolean
 }
 
 export interface Variables extends Record<string, unknown> {

@@ -4,6 +4,12 @@ import type { IOContext, InstanceOptions, IOResponse } from '@vtex/api'
 
 import ENV from '../env'
 
+/** Archivo a crear o sobrescribir en un commit. */
+export interface GitHubUpsert {
+  path: string
+  content: string
+}
+
 export default class GitHubClient extends ExternalClient {
   private octokit: Octokit
   private branch = 'main'
@@ -131,6 +137,108 @@ export default class GitHubClient extends ExternalClient {
           action: isUpdate ? 'updated' : 'created',
           ...response.data,
         },
+        headers: response.headers as IOResponse<string>['headers'],
+      }
+    } catch (error: any) {
+      return {
+        status: error?.status || 500,
+        data: { error },
+        headers: {},
+      }
+    }
+  }
+
+  /**
+   * Aplica varios cambios en un único commit, usando la Git Data API.
+   *
+   * La API de contenidos solo permite un archivo por commit, y eso deja el repo
+   * en estados intermedios inconsistentes —por ejemplo un `routes.json` que
+   * apunta a un bloque ya borrado— que disparan builds del theme condenados a
+   * fallar. Acá el árbol se arma completo y se commitea de una vez.
+   *
+   * Si el árbol resultante es idéntico al actual no se commitea nada, para no
+   * generar builds al vacío.
+   */
+  public async commitFiles(
+    changes: { upserts?: GitHubUpsert[]; deletions?: string[] },
+    message: string
+  ): Promise<IOResponse<any>> {
+    const owner = ENV.GIT_OWNER ?? ''
+    const repo = ENV.GIT_REPOSITORY ?? ''
+
+    const upserts = changes.upserts ?? []
+    const deletions = changes.deletions ?? []
+
+    if (!upserts.length && !deletions.length) {
+      return { status: 200, data: { action: 'skipped' }, headers: {} }
+    }
+
+    try {
+      // El ref siempre devuelve el commit real de la branch, así que el árbol
+      // base nunca queda desactualizado.
+      const { data: ref } = await this.octokit.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${this.branch}`,
+      })
+
+      const parentSha = ref.object.sha
+
+      const { data: parent } = await this.octokit.git.getCommit({
+        owner,
+        repo,
+        commit_sha: parentSha,
+      })
+
+      const tree = [
+        ...upserts.map((file) => ({
+          path: file.path,
+          mode: '100644' as const,
+          type: 'blob' as const,
+          content: file.content,
+        })),
+        // sha en null es como la API expresa "borrar este path".
+        ...deletions.map((path) => ({
+          path,
+          mode: '100644' as const,
+          type: 'blob' as const,
+          sha: null,
+        })),
+      ]
+
+      const { data: newTree } = await this.octokit.git.createTree({
+        owner,
+        repo,
+        base_tree: parent.tree.sha,
+        tree,
+      })
+
+      if (newTree.sha === parent.tree.sha) {
+        return {
+          status: 200,
+          data: { action: 'skipped', reason: 'No changes detected' },
+          headers: {},
+        }
+      }
+
+      const { data: commit } = await this.octokit.git.createCommit({
+        owner,
+        repo,
+        message,
+        tree: newTree.sha,
+        parents: [parentSha],
+      })
+
+      const response = await this.octokit.git.updateRef({
+        owner,
+        repo,
+        ref: `heads/${this.branch}`,
+        sha: commit.sha,
+      })
+
+      return {
+        status: 200,
+        data: { action: 'committed', sha: commit.sha },
         headers: response.headers as IOResponse<string>['headers'],
       }
     } catch (error: any) {

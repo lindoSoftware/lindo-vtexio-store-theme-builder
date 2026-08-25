@@ -27,7 +27,7 @@ POST /_v/deploy  →  SectionStrategy (lee Strapi)
 │   │       └── layout/          # VtexLayoutBuilder + processors por bloque
 │   ├── resolvers/               # Resolvers de GraphQL (vacío por ahora)
 │   ├── mappers/                 # Mappers (vacío por ahora)
-│   ├── services/                # Lógica de servicios (StrapiConfigService)
+│   ├── services/                # StrapiConfigService, CustomPageRemovalService
 │   ├── typings/                 # Tipos e interfaces TypeScript
 │   ├── utils/                   # helpers, constants, queries GraphQL de Strapi
 │   ├── env.ts                   # Constantes de entorno (repo de GitHub, paths)
@@ -77,6 +77,9 @@ Público. Construye y commitea el layout de una sección.
 - `variables`: opcional, se pasa como variables a la query de Strapi (solo lo usa `custom-page`).
 - `previousSlug`: opcional, solo para `custom-page`. Slug con el que la página estaba
   publicada antes de renombrarla en el CMS — ver [Renombrado de custom pages](#renombrado-de-custom-pages).
+- `deleted`: opcional, solo para `custom-page` y siempre junto a `previousSlug`. La
+  página se eliminó del CMS: no se consulta Strapi ni se publica nada, solo se saca
+  del theme — ver [Eliminación de custom pages](#eliminación-de-custom-pages).
 
 **Respuesta OK (200)**
 
@@ -86,11 +89,16 @@ Público. Construye y commitea el layout de una sección.
   "section": "custom-page",
   "variables": { "filters": { "slug": { "eq": "medios-de-pago" } } },
   "previousSlug": null,
+  "removedRoutes": [],
   "data": { "customPages": [] }
 }
 ```
 
-**Respuesta error (500)**
+`removedRoutes` lista las keys de `routes.json` que se dieron de baja en el deploy.
+
+**Respuesta error**
+
+`400` si el request está mal formado, `500` si falló el deploy:
 
 ```json
 { "success": false, "error": "Missing required setting: strapiURL" }
@@ -122,12 +130,14 @@ en el mismo request:
 }
 ```
 
-Con eso, `DeleteCustomPageCommand` corre **antes** del commit y:
+Con eso, `CustomPageRemovalService.plan` resuelve qué hay que sacar:
 
 1. Busca `store.custom#<previousSlug>` en `routes.json` — es la única fuente que sabe
    con qué `path` se publicó la página vieja.
-2. Borra `store/blocks/pages/custom/<path>/<previousSlug>.jsonc`.
-3. Deja la key en `removedRouteKeys`, que después consume `CommitJsonCommand`.
+2. Devuelve la key de la ruta y el path del `.jsonc` a borrar.
+
+El servicio **solo lee**. El borrado lo aplica `CommitJsonCommand` en el mismo commit
+que escribe el `routes.json` nuevo — ver [Un solo commit por cambio](#un-solo-commit-por-cambio).
 
 Es una operación best-effort y nunca rompe el deploy: se saltea con un warning si el
 `previousSlug` no es válido, si no tiene ruta publicada, o si coincide con una de las
@@ -138,9 +148,41 @@ así un deploy que falló a mitad de camino se termina de limpiar en el reintent
 El `previousSlug` se normaliza con `BlockNameHelper.sanitizeSlug`, igual que en el
 build, así que tiene que llegar tal cual estaba el slug en el CMS.
 
-#### Por qué el borrado no escribe `routes.json`
+### Eliminación de custom pages
 
-`routes.json` se escribe **una sola vez por deploy**, siempre desde
+Cuando la página se borra del CMS no hay nada para publicar, solo hay que sacarla del
+theme. El request lo indica con `deleted`:
+
+```json
+{
+  "section": "custom-page",
+  "deleted": true,
+  "previousSlug": "pagina-vieja"
+}
+```
+
+Con `deleted` en `true` el deploy corta por lo corto: **no consulta Strapi** (ni
+siquiera necesita `strapiURL` configurado), no arma layout y no publica archivos. En un
+único commit borra `store/blocks/pages/custom/<path>/<previousSlug>.jsonc` y saca su
+entrada de `routes.json`, con las mismas garantías que el renombrado.
+
+Requiere `section: "custom-page"` y un `previousSlug` no vacío; si falta alguno
+responde `400`. Si el slug no tiene ruta publicada responde `200` con
+`removedRoutes: []` — no es un error, la página ya no estaba.
+
+### Un solo commit por cambio
+
+Borrar el `.jsonc` viejo y actualizar `routes.json` tiene que ser **un único commit**.
+En dos commits el repo pasa por un estado donde `routes.json` referencia un bloque que
+ya no existe, y el build del theme corre sobre ese commit intermedio y falla.
+
+La API de contenidos de GitHub solo permite un archivo por commit, así que
+`GitHubClient.commitFiles` usa la Git Data API: lee el ref de la branch, arma el árbol
+con todos los cambios (`sha: null` para los borrados) y crea un commit con ese árbol.
+Si el árbol resultante es idéntico al actual no commitea nada, para no disparar builds
+al vacío.
+
+`routes.json` además se escribe **una sola vez por deploy**, siempre desde
 `CommitJsonCommand`, y siempre como `{ ...loQueHayEnElRepo, ...lasRutasGeneradas }`
 menos las keys dadas de baja. Que las rutas generadas se mergeen por encima es lo que
 hace que el archivo no dependa de que la lectura de GitHub esté al día.
@@ -148,8 +190,8 @@ hace que el archivo no dependa de que la lectura de GitHub esté al día.
 Un segundo componente que leyera y reescribiera el archivo en el mismo deploy no
 tendría esa garantía: si su lectura llega desactualizada —la API de contenidos de
 GitHub puede tardar en reflejar un commit recién hecho— escribiría un `routes.json`
-sin la página que se acababa de publicar. Por eso el borrado solo *reporta* la key y
-no toca el archivo.
+sin la página que se acababa de publicar. Por eso `CustomPageRemovalService` solo
+*reporta* qué dar de baja y no toca el repo.
 
 ### Bloques soportados
 

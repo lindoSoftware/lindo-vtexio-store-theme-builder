@@ -1,6 +1,13 @@
 import { CommitJsonCommand } from '../CommitJsonCommand'
 import type { GeneratedFile } from '../BuildJsonCommand'
 import type { CustomPagesData } from '../../../typings/custompage-response'
+import {
+  buildGithubCtx,
+  commits,
+  committedRoutes,
+  jsonFile,
+  routesCommit,
+} from '../../../__tests__/helpers/github-context'
 
 const ROUTES_FILE_PATH = 'store/routes.json'
 
@@ -27,59 +34,37 @@ const pageFile: GeneratedFile = {
   content: '{}',
 }
 
-function buildCtx(existingRoutes: Record<string, unknown> | null) {
-  const github = {
-    init: jest.fn().mockResolvedValue(undefined),
-    getFileContent: jest.fn(async () =>
-      existingRoutes
-        ? {
-            exists: true,
-            sha: 'routes-sha',
-            content: JSON.stringify(existingRoutes),
-          }
-        : { exists: false }
-    ),
-    createOrUpdateFile: jest.fn().mockResolvedValue({ status: 200, data: {} }),
-    deleteFile: jest.fn().mockResolvedValue({ status: 200, data: '' }),
-  }
-
-  const ctx = {
-    clients: {
-      github,
-      apps: {
-        getAppSettings: jest.fn().mockResolvedValue({
-          githubToken: 'token',
-          githubBranchName: 'staging',
-        }),
-      },
-    },
-    vtex: { logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() } },
-  }
-
-  return { ctx: ctx as unknown as Context, github }
-}
-
 const emptyData = { customPages: [] } as CustomPagesData
 
-function committedRoutes(github: { createOrUpdateFile: jest.Mock }) {
-  const call = github.createOrUpdateFile.mock.calls.find(
-    ([path]: [string]) => path === ROUTES_FILE_PATH
-  )
+const OLD_PAGE_FILE = 'store/blocks/pages/custom/sucursales/sucursales.jsonc'
 
-  return JSON.parse(call[1])
+/** Plan de baja de la página renombrada. */
+const removal = {
+  routeKeys: ['store.custom#sucursales'],
+  filePaths: [OLD_PAGE_FILE],
+}
+
+function commit(
+  ctx: Context,
+  files: GeneratedFile[],
+  plan = { routeKeys: [] as string[], filePaths: [] as string[] }
+) {
+  return new CommitJsonCommand(
+    'custom-page',
+    emptyData,
+    ctx,
+    files,
+    plan
+  ).execute()
 }
 
 describe('CommitJsonCommand · routes.json', () => {
   it('mergea las rutas generadas y da de baja las viejas', async () => {
-    const { ctx, github } = buildCtx(publishedRoutes)
+    const { ctx, github } = buildGithubCtx({
+      [ROUTES_FILE_PATH]: jsonFile(publishedRoutes),
+    })
 
-    await new CommitJsonCommand(
-      'custom-page',
-      emptyData,
-      ctx,
-      [pageFile, routesFile],
-      ['store.custom#sucursales']
-    ).execute()
+    await commit(ctx, [pageFile, routesFile], removal)
 
     expect(committedRoutes(github)).toEqual({
       'store.custom#faq': { path: '/faq' },
@@ -88,29 +73,22 @@ describe('CommitJsonCommand · routes.json', () => {
   })
 
   it('escribe solo las rutas generadas si routes.json todavía no existe', async () => {
-    const { ctx, github } = buildCtx(null)
+    const { ctx, github } = buildGithubCtx()
 
-    await new CommitJsonCommand(
-      'custom-page',
-      emptyData,
-      ctx,
-      [pageFile, routesFile],
-      ['store.custom#sucursales']
-    ).execute()
+    await commit(ctx, [pageFile, routesFile], removal)
 
     expect(committedRoutes(github)).toEqual(generatedRoutes)
   })
 
   it('nunca da de baja una ruta que se acaba de generar', async () => {
-    const { ctx, github } = buildCtx(publishedRoutes)
+    const { ctx, github } = buildGithubCtx({
+      [ROUTES_FILE_PATH]: jsonFile(publishedRoutes),
+    })
 
-    await new CommitJsonCommand(
-      'custom-page',
-      emptyData,
-      ctx,
-      [routesFile],
-      ['store.custom#sucursalesnu']
-    ).execute()
+    await commit(ctx, [routesFile], {
+      routeKeys: ['store.custom#sucursalesnu'],
+      filePaths: [],
+    })
 
     // Object.keys en vez de toHaveProperty: jest interpreta los puntos de la
     // key como un path anidado.
@@ -120,34 +98,45 @@ describe('CommitJsonCommand · routes.json', () => {
   })
 
   it('escribe routes.json una sola vez por deploy', async () => {
-    const { ctx, github } = buildCtx(publishedRoutes)
+    const { ctx, github } = buildGithubCtx({
+      [ROUTES_FILE_PATH]: jsonFile(publishedRoutes),
+    })
 
-    await new CommitJsonCommand(
-      'custom-page',
-      emptyData,
-      ctx,
-      [pageFile, routesFile],
-      ['store.custom#sucursales']
-    ).execute()
+    await commit(ctx, [pageFile, routesFile], removal)
 
-    const routesWrites = github.createOrUpdateFile.mock.calls.filter(
-      ([path]: [string]) => path === ROUTES_FILE_PATH
-    )
+    expect(commits(github)).toHaveLength(1)
+  })
 
-    expect(routesWrites).toHaveLength(1)
+  it('borra el .jsonc viejo en el MISMO commit que routes.json', async () => {
+    // El commit del borrado por separado deja el repo con routes.json apuntando
+    // a un bloque inexistente, y el build del theme corre sobre ese estado.
+    const { ctx, github } = buildGithubCtx({
+      [ROUTES_FILE_PATH]: jsonFile(publishedRoutes),
+    })
+
+    await commit(ctx, [pageFile, routesFile], removal)
+
+    expect(routesCommit(github).deletions).toEqual([OLD_PAGE_FILE])
+    expect(github.deleteFile).not.toHaveBeenCalled()
+  })
+
+  it('no borra archivos si no hay nada dado de baja', async () => {
+    const { ctx, github } = buildGithubCtx({
+      [ROUTES_FILE_PATH]: jsonFile(publishedRoutes),
+    })
+
+    await commit(ctx, [pageFile, routesFile])
+
+    expect(routesCommit(github).deletions).toEqual([])
   })
 
   it('limpia la ruta vieja aunque el build no haya generado archivos', async () => {
     // Caso: la página se eliminó del CMS, no hay nada nuevo para publicar.
-    const { ctx, github } = buildCtx(publishedRoutes)
+    const { ctx, github } = buildGithubCtx({
+      [ROUTES_FILE_PATH]: jsonFile(publishedRoutes),
+    })
 
-    await new CommitJsonCommand(
-      'custom-page',
-      emptyData,
-      ctx,
-      [],
-      ['store.custom#sucursales']
-    ).execute()
+    await commit(ctx, [], removal)
 
     expect(committedRoutes(github)).toEqual({
       'store.custom#faq': { path: '/faq' },
@@ -155,11 +144,14 @@ describe('CommitJsonCommand · routes.json', () => {
   })
 
   it('no toca GitHub si no hay archivos ni rutas para dar de baja', async () => {
-    const { ctx, github } = buildCtx(publishedRoutes)
+    const { ctx, github } = buildGithubCtx({
+      [ROUTES_FILE_PATH]: jsonFile(publishedRoutes),
+    })
 
-    await new CommitJsonCommand('custom-page', emptyData, ctx, []).execute()
+    await commit(ctx, [])
 
     expect(github.init).not.toHaveBeenCalled()
     expect(github.createOrUpdateFile).not.toHaveBeenCalled()
+    expect(github.commitFiles).not.toHaveBeenCalled()
   })
 })

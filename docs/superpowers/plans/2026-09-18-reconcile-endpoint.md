@@ -930,11 +930,26 @@ Crear `node/middlewares/__tests__/reconcile.test.ts`:
 ```ts
 import { reconcile } from '../reconcile'
 import { StrapiConfigService } from '../../services/StrapiConfigService'
-import { ReconcileContentService } from '../../services/ReconcileContentService'
 import {
   buildGithubCtx,
   trackedFile,
 } from '../../__tests__/helpers/github-context'
+
+// Va con factory y NO con `jest.spyOn`: spyOn carga el módulo real, que importa
+// las estrategias y con ellas `@vtex/api` —el import que `deploy.test.ts` evita a
+// propósito porque al cargarse deja un timer abierto en Jest—. La factory corta
+// esa cadena también para el import que hace `reconcile.ts`.
+//
+// El prefijo `mock` es obligatorio: jest hoistea `jest.mock` por encima de esta
+// declaración y solo admite que la factory referencie variables externas que
+// empiecen así.
+const mockBuild = jest.fn()
+
+jest.mock('../../services/ReconcileContentService', () => ({
+  ReconcileContentService: {
+    build: (...args: unknown[]) => mockBuild(...args),
+  },
+}))
 
 const ROUTES = 'store/routes.json'
 const SUCURSALES = 'store/blocks/pages/custom/sucursales/sucursales.jsonc'
@@ -958,21 +973,18 @@ const generated = [
 const noop = async () => undefined
 
 let strapi: jest.SpyInstance
-let content: jest.SpyInstance
 
 beforeEach(() => {
   strapi = jest
     .spyOn(StrapiConfigService, 'getConfig')
     .mockResolvedValue({ url: 'https://strapi.test' })
 
-  content = jest
-    .spyOn(ReconcileContentService, 'build')
-    .mockResolvedValue(generated)
+  mockBuild.mockReset()
+  mockBuild.mockResolvedValue(generated)
 })
 
 afterEach(() => {
   strapi.mockRestore()
-  content.mockRestore()
 })
 
 describe('reconcile', () => {
@@ -1027,7 +1039,7 @@ describe('reconcile', () => {
       [ROUTES]: trackedFile(routesConSucursales),
     })
 
-    content.mockRejectedValue(new Error('Strapi caído'))
+    mockBuild.mockRejectedValue(new Error('Strapi caído'))
 
     await reconcile(ctx, noop)
 

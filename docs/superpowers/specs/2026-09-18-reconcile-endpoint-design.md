@@ -2,6 +2,7 @@
 
 **Fecha:** 2026-09-18
 **Estado:** diseño aprobado, sin implementar
+**Plan:** `docs/superpowers/plans/2026-09-18-reconcile-endpoint.md`
 **Repos que toca:** `lindo-vtexio-store-theme-builder` (el endpoint), `lindo-vtexio-strapi-coco` (el job de Jenkins)
 
 ## Problema
@@ -152,8 +153,10 @@ que mover esas keys a otro archivo o acotar la reescritura al prefijo `store.cus
 | Archivo | Responsabilidad |
 | --- | --- |
 | `node/middlewares/reconcile.ts` | Handler de la ruta. Orquesta, arma la respuesta, mapea errores. |
+| `node/services/ReconcileContentService.ts` | Lee las tres secciones del CMS en paralelo y arma todos los `GeneratedFile[]`, reusando las estrategias existentes. |
 | `node/services/ReconcilePlanService.ts` | De los `GeneratedFile[]` + el árbol actual del repo saca `{ upserts, deletions, routesFinal, routesRemoved }`. Solo lee y calcula; no commitea. |
-| `GitHubClient.listFiles(prefix)` | `git.getTree({ recursive: true })` sobre el branch, filtrado por prefijo. Una sola llamada. |
+| `node/utils/gitBlobSha.ts` | El SHA de blob de git de un contenido, para comparar contra el del árbol. Ver *Cómo se calcula el diff*. |
+| `GitHubClient.listFiles(prefix)` | `git.getTree({ recursive: true })` sobre el branch, filtrado por prefijo. Devuelve el path y el SHA de blob de cada archivo, más el flag `truncated`. Una sola llamada. |
 | `node/utils/normalizeRepoPath.ts` | Única forma de armar un path del repo. Ver *Normalización de paths*. |
 
 ### Piezas reusadas sin cambios
@@ -210,10 +213,15 @@ se commitee o se borre pasa por acá.
 3. Las tres `BuildJsonStrategy` sobre esa data → un `GeneratedFile[]` único.
 4. `initGitHubClient(ctx)` y `ReconcilePlanService.plan(ctx, generatedFiles)`:
    - separa el `routes.json` generado (o `{}` si no se emitió) — ese es el contenido final;
-   - `listFiles('store/blocks/pages/custom/')` filtrando `.jsonc`, que además devuelve el
-     SHA de blob de cada archivo;
-   - `getFileContent('store/routes.json')` para poder reportar `routes.removed`;
-   - `deletions` = los `.jsonc` del repo que no están en el set generado;
+   - `listFiles('store/')` — el prefijo es `store/` y no el de custom pages porque el SHA
+     hace falta para **todos** los archivos generados: sin el de `routes.json`, el de
+     `custom-navbar.jsonc` y el de `home.jsonc`, esos tres se verían como cambiados en cada
+     corrida;
+   - `getFileContent('store/routes.json')` para poder reportar `routes.removed`, que
+     necesita el contenido y no solo el SHA;
+   - `deletions` = los `.jsonc` **bajo `CUSTOM_PAGE_PATH`** que no están en el set generado;
+     el filtro por ese prefijo es lo que garantiza que reconcile no borre nada fuera de las
+     custom pages;
    - `upserts` = los archivos generados cuyo contenido **difiere** del repo;
    - `routesRemoved` = las keys que estaban en el `routes.json` del repo y no en el nuevo
      (solo informativo; el archivo se reescribe entero igual).

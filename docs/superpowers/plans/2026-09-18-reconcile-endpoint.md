@@ -12,7 +12,8 @@
 
 ## Global Constraints
 
-- Todos los comandos de test corren desde `node/`: `yarn test`. El gate completo es `bash lint.sh` desde la raíz (ESLint → `tsc --noEmit` → Jest).
+- Todos los comandos de test corren desde `node/`: `yarn test`. El gate completo es `bash lint.sh` desde la raíz (ESLint → `tsc --noEmit` → Jest). **Cada task corre el gate completo antes de commitear**, no solo `yarn test`: ESLint va primero y bajo `set -euo pipefail`, así que un error de formato aborta todo.
+- **Los bloques de código de este plan no están formateados con prettier.** `printWidth` es 80 y `eslint-config-vtex` cablea `prettier/prettier: 'error'`, así que varias líneas del plan fallan el gate tal cual están. Si `bash lint.sh` reporta un error de formato sobre código transcripto del plan, aplicá lo que prettier genera: **eso no es apartarse del brief, es lo que el brief pide**. La lógica, los nombres y los valores exactos sí son literales; el formato lo decide prettier.
 - `tsconfig.json` tiene `strict`, `noImplicitReturns`, `noUnusedLocals` y `noUnusedParameters` activos: un import o un parámetro sin usar rompe el build.
 - Target ES2019: `Array.prototype.flat` está disponible, `Object.hasOwn` y `Array.prototype.at` no.
 - El código y los comentarios del repo están en castellano. Los mensajes de commit, en inglés.

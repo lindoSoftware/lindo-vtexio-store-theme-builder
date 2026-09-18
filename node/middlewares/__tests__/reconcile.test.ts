@@ -89,6 +89,79 @@ describe('reconcile', () => {
       files: { written: [SUCURSALES], deleted: [HUERFANA] },
       routes: { final: ['store.custom#sucursales'], removed: [] },
     })
+
+    // El body del response no sobrevive más allá de esa noche; el log de
+    // Jenkins sí. Por eso lo que se borra tiene que quedar en un warn.
+    expect(ctx.vtex.logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining(HUERFANA) })
+    )
+  })
+
+  it('avisa con warn una ruta dada de baja aunque no haya archivo que borrar', async () => {
+    const ROUTE_KEY = 'store.custom#huerfana'
+    const routesConHuerfana = JSON.stringify(
+      {
+        'store.custom#sucursales': { path: '/sucursales' },
+        [ROUTE_KEY]: { path: '/huerfana' },
+      },
+      null,
+      2
+    )
+
+    const { ctx, github } = buildGithubCtx({
+      [ROUTES]: trackedFile(routesConHuerfana),
+      [SUCURSALES]: trackedFile('{"page":1}'),
+    })
+
+    github.commitFiles.mockResolvedValue({
+      status: 200,
+      data: { action: 'committed', sha: 'def456' },
+    })
+
+    await reconcile(ctx, noop)
+
+    const [changes] = github.commitFiles.mock.calls[0]
+
+    // Sin `.jsonc` para "huerfana" en el repo no hay nada que borrar, pero la
+    // key sigue en el routes.json viejo: se da de baja igual al reescribirlo.
+    expect(changes.deletions).toEqual([])
+    expect(ctx.body).toMatchObject({
+      routes: { removed: [ROUTE_KEY] },
+    })
+
+    expect(ctx.vtex.logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining(ROUTE_KEY) })
+    )
+  })
+
+  it('no avisa con warn cuando el commit no borra archivos ni da de baja rutas', async () => {
+    const CUSTOM_NAVBAR = 'store/blocks/header/custom-navbar.jsonc'
+
+    mockBuild.mockResolvedValue([
+      {
+        path: 'store/blocks/header',
+        filename: 'custom-navbar.jsonc',
+        content: '{"nuevo":true}',
+      },
+      { path: 'store', filename: 'routes.json', content: routesConSucursales },
+    ])
+
+    const { ctx, github } = buildGithubCtx({
+      [ROUTES]: trackedFile(routesConSucursales),
+      [CUSTOM_NAVBAR]: trackedFile('{"viejo":true}'),
+    })
+
+    github.commitFiles.mockResolvedValue({
+      status: 200,
+      data: { action: 'committed', sha: 'ghi789' },
+    })
+
+    await reconcile(ctx, noop)
+
+    // Hay upsert (cambió el navbar) pero nada que borrar ni ninguna ruta dada
+    // de baja: no es el caso que este warn tiene que cubrir.
+    expect(github.commitFiles).toHaveBeenCalledTimes(1)
+    expect(ctx.vtex.logger.warn).not.toHaveBeenCalled()
   })
 
   it('no commitea cuando el repo ya coincide con el CMS', async () => {

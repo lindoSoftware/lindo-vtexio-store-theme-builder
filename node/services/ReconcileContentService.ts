@@ -33,9 +33,11 @@ export class ReconcileContentService {
     strapi: StrapiConfig
   ): Promise<GeneratedFile[]> {
     // `undefined` como variables es deliberado: el $filters de CUSTOM_PAGE_QUERY
-    // queda nulo y Strapi devuelve todas las custom pages, que es lo que hace
-    // falta para saber cuáles sobran en el repo. Las otras dos secciones lo
-    // ignoran.
+    // queda nulo, así que no filtra por slug. Lo que garantiza que vuelvan
+    // *todas* las páginas —y no como máximo 10, el default de Strapi— es que
+    // la query trae su propia paginación explícita sin límite práctico. Sin
+    // eso, omitir `variables` no alcanzaría. Las otras dos secciones ignoran
+    // este segundo argumento.
     const data = await SectionStrategyFactory.create(section).getData(
       ctx,
       undefined,

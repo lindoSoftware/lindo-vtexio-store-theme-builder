@@ -63,7 +63,9 @@ describe('ReconcileContentService.build', () => {
     )
 
     // El segundo argumento de getData son las `variables` de la query: en
-    // undefined, el $filters queda nulo y Strapi devuelve todas las páginas.
+    // undefined, el $filters queda nulo. Que Strapi devuelva todas las
+    // páginas depende además de la paginación explícita de CUSTOM_PAGE_QUERY
+    // (ver queries.test.ts); sin ella, omitir `variables` no alcanzaría.
     expect(call?.[2]).toBeUndefined()
   })
 

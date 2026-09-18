@@ -101,11 +101,14 @@ Público. Construye y commitea el layout de una sección.
 
 - `section`: `"navbar"` | `"home-page"` | `"custom-page"`
 - `variables`: opcional, se pasa tal cual como variables a la query de Strapi (solo lo usa
-  `custom-page`). **Si se omite**, el `$filters` de `CUSTOM_PAGE_QUERY` queda nulo y la
-  query devuelve *todas* las custom pages: un `{"section":"custom-page"}` pelado regenera el
-  layout de todas y reescribe `routes.json` con las rutas de todas ellas. Strapi nunca manda
-  ese payload —siempre filtra por slug—, pero es válido y es la forma de republicar todo a
-  mano.
+  `custom-page`). **Si se omite**, el `$filters` de `CUSTOM_PAGE_QUERY` queda nulo, así que
+  no filtra por slug. Que además traiga *todas* las custom pages depende de que la query
+  tenga paginación explícita sin límite práctico —sin eso, el default de Strapi corta en 10
+  (el plugin de GraphQL no define `defaultLimit` y cae al de `@strapi/utils`; el
+  `defaultLimit: 25` de `config/api.ts` es de `rest`, no de GraphQL)—. Con eso, un
+  `{"section":"custom-page"}` pelado regenera el layout de todas y reescribe `routes.json`
+  con las rutas de todas ellas. Strapi nunca manda ese payload —siempre filtra por slug—,
+  pero es válido y es la forma de republicar todo a mano.
 - `previousSlug`: opcional, solo para `custom-page`. Slug con el que la página estaba
   publicada antes de renombrarla en el CMS — ver [Renombrado de custom pages](#renombrado-de-custom-pages).
 - `deleted`: opcional, solo para `custom-page` y siempre junto a `previousSlug`. La
@@ -259,16 +262,36 @@ genera ningún commit —ni build del theme—. `files.written` lista solo lo qu
 cambió: el plan compara el SHA de blob de cada archivo generado contra el del árbol del
 repo.
 
+`committed: false` tiene un segundo caso, con `files.written` **no vacío**: el plan detectó
+diferencias, pero al momento de commitear el árbol resultante ya coincidía con el HEAD del
+repo (por ejemplo, un `/_v/deploy` publicó el mismo cambio mientras tanto). `commitFiles` lo
+resuelve como `skipped`, no como error.
+
+**Respuesta error (500)**
+
+```json
+{ "success": false, "error": "Error executing Strapi GraphQL query: ..." }
+```
+
+Mismo shape que `/_v/deploy`. Este endpoint no valida body, así que nunca responde `400`.
+
 **Es autoritativo.** `routes.json` se **reescribe** (no se mergea como en `/_v/deploy`) y
 se borra todo `.jsonc` bajo `store/blocks/pages/custom/` que no corresponda a una página del
 CMS. Nada fuera de `store/` se toca, y `custom-navbar.jsonc` y `home.jsonc` se sobrescriben
-pero nunca se borran.
+pero nunca se borran. Si una custom page se publica justo entre la lectura de Strapi y el
+commit, su `.jsonc` queda pero pierde su entrada en `routes.json` —reconcile sobrescribe en
+vez de mergear—; se autocorrige en la corrida siguiente.
 
 Asunción: **`routes.json` es propiedad exclusiva del CMS.** Una ruta agregada a mano al
 theme se pierde en la primera reconciliación.
 
 **Todo o nada.** Las tres queries y el build ocurren en memoria; recién al final hay un
 único commit. Si Strapi falla, no se commitea nada.
+
+**Primera corrida: a mano.** Antes de dejar el cron de Jenkins suelto, correr el job con
+"Build Now" una vez y revisar la respuesta —en particular `files.deleted` y
+`routes.removed`— para auditar el drift real del repo contra el CMS antes de que quede
+desatendido.
 
 Diseño completo en
 [`docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md`](docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md).

@@ -209,7 +209,12 @@ se commitee o se borre pasa por acá.
    - `NavbarStrategy.getData(ctx, null, strapi)`
    - `HomePageStrategy.getData(ctx, null, strapi)`
    - `CustomPageStrategy.getData(ctx, **undefined**, strapi)` — sin `variables`, el
-     `$filters` de `CUSTOM_PAGE_QUERY` queda nulo y la query devuelve **todas** las páginas.
+     `$filters` de `CUSTOM_PAGE_QUERY` queda nulo, pero eso solo saca el filtro por slug.
+     Lo que garantiza que vuelvan **todas** las páginas es que la query trae paginación
+     explícita sin límite práctico (`pagination: { limit: 2147483647 }`): sin eso, el
+     default de Strapi corta en 10 —el plugin de GraphQL no define `defaultLimit` y cae
+     al `10` de `@strapi/utils`; el `defaultLimit: 25` de `config/api.ts` es de `rest` y
+     esta query nunca lo lee.
 3. Las tres `BuildJsonStrategy` sobre esa data → un `GeneratedFile[]` único.
 4. `initGitHubClient(ctx)` y `ReconcilePlanService.plan(ctx, generatedFiles)`:
    - separa el `routes.json` generado (o `{}` si no se emitió) — ese es el contenido final;
@@ -279,8 +284,12 @@ Dos cosas que conviene tener escritas, porque no son obvias:
   `extensible`, `settingsType` y `rateLimitPerReplica`. Subirlo a 60s lo sube también para
   `/_v/deploy`. Es aceptable: un timeout es un techo, no una demora. El costo real es que
   un request colgado ocupa un worker 60s en vez de 10.
-- **`rateLimitPerReplica` sí es por ruta.** `concurrent: 1` evita que dos reconciliaciones
-  simultáneas calculen su plan contra el mismo commit padre y una pise a la otra.
+- **`rateLimitPerReplica` sí es por ruta, pero por réplica.** `concurrent: 1` limita las
+  reconciliaciones simultáneas dentro de una réplica; `minReplicas` es 2, así que dos
+  reconciliaciones en réplicas distintas pueden seguir corriendo al mismo tiempo. Reduce la
+  ventana de la carrera, no la elimina. El `updateRef` de `commitFiles` no manda `force`,
+  así que la que pierde la carrera falla ahí y responde 500 —cuesta una corrida fallida, no
+  corrompe el repo.
 
 ### Settings de la app
 
@@ -401,7 +410,8 @@ Sin tests de integración contra GitHub ni Strapi reales.
 | Reescribir `routes.json` borra rutas escritas a mano en el theme | Hoy no existen. Documentado como asunción; si aparecen, acotar la reescritura al prefijo `store.custom#`. |
 | Un CMS vacío o mal respondido borra todo el contenido custom | Las queries que fallan abortan sin commitear. Pero un Strapi que responde `{ customPages: [] }` legítimamente sí vacía el theme — es el comportamiento pedido. El primer run manual es la oportunidad de verificarlo. |
 | El timeout de 60s aplica también a `/_v/deploy` | Es un techo, no una demora. Impacto: un request colgado ocupa un worker 60s. |
-| Dos reconciliaciones concurrentes | `rateLimitPerReplica: { concurrent: 1 }` en la ruta. |
+| Dos reconciliaciones concurrentes | `rateLimitPerReplica: { concurrent: 1 }` reduce la ventana, pero es por réplica y `minReplicas` es 2, así que no la elimina. La que pierde la carrera falla en el `updateRef` (sin `force`) y responde 500: una corrida fallida, no un repo corrupto. |
+| El endpoint es público y destructivo | Aceptado por ahora, igual que `/_v/deploy`. A diferencia de ese, reconcile borra archivos, reescribe `routes.json` y dispara builds del theme: cualquiera que conozca la URL del workspace puede accionarlo en loop. Opciones si se decide cerrarlo: sacar `public: true` y llamar con appKey/appToken desde Jenkins, o validar un header de secreto compartido en el handler. |
 
 ## Trabajo futuro (fuera de este spec)
 
@@ -436,6 +446,10 @@ que aparece el drift que este endpoint corrige.
 
 Detalle que no estaba documentado y que este diseño aprovecha: **`variables` es opcional**.
 `CustomPageStrategy` lo pasa tal cual al client, y el `$filters` de `CUSTOM_PAGE_QUERY` es
-nullable, así que un `{"section":"custom-page"}` sin `variables` trae todas las páginas.
-Strapi nunca emite ese payload —siempre filtra por slug—, pero es el mecanismo sobre el que
-se apoya el paso 2 del flujo de reconcile.
+nullable, así que un `{"section":"custom-page"}` sin `variables` no filtra por slug. Que
+además traiga **todas** las páginas depende de que la query tenga paginación explícita sin
+límite práctico —agregada en este mismo cambio—: sin ella, el default de Strapi corta en 10
+(el plugin de GraphQL no define `defaultLimit` y cae al de `@strapi/utils`; el
+`defaultLimit: 25` de `config/api.ts` es de `rest`, no de GraphQL). Strapi nunca emite ese
+payload —siempre filtra por slug—, pero es el mecanismo sobre el que se apoya el paso 2 del
+flujo de reconcile.

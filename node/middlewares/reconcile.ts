@@ -59,6 +59,19 @@ async function run(ctx: Context): Promise<ReconcileResponseSuccess> {
     return { ...report, committed: false, commitSha: null }
   }
 
+  // Única constancia de QUÉ se borró más allá del body del response: el log
+  // de Jenkins de esta noche es lo único que sobrevive para auditar un
+  // borrado sorpresa.
+  if (plan.deletions.length || plan.routesRemoved.length) {
+    ctx.vtex.logger.warn({
+      message: `[reconcile] Borrando ${
+        plan.deletions.length
+      } archivo(s): ${plan.deletions.join(', ')}. Dando de baja ${
+        plan.routesRemoved.length
+      } ruta(s): ${plan.routesRemoved.join(', ')}.`,
+    })
+  }
+
   const res = await ctx.clients.github.commitFiles(
     { upserts: plan.upserts, deletions: plan.deletions },
     `Reconcile store theme with CMS (${plan.upserts.length} files, ${plan.deletions.length} deletions)`

@@ -227,6 +227,52 @@ GitHub puede tardar en reflejar un commit recién hecho— escribiría un `route
 sin la página que se acababa de publicar. Por eso `CustomPageRemovalService` solo
 *reporta* qué dar de baja y no toca el repo.
 
+### `POST /_v/reconcile`
+
+Público, sin parámetros. Lee **todo** el CMS y deja el theme exactamente en ese estado, en
+un único commit. Corrige el drift que el deploy incremental acumula: rutas huérfanas de
+renames que perdieron su `previousSlug`, y secciones que se quedaron viejas porque su
+trigger no corrió.
+
+**Body:** `{}` (o ausente). Cualquier campo que llegue se ignora.
+
+**Respuesta OK (200)**
+
+```json
+{
+  "success": true,
+  "committed": true,
+  "commitSha": "a1b2c3d",
+  "files": {
+    "written": ["store/blocks/pages/custom/sucursales/sucursales.jsonc", "store/routes.json"],
+    "deleted": ["store/blocks/pages/custom/sucursales/sucursalesnueva.jsonc"]
+  },
+  "routes": {
+    "final": ["store.custom#sucursales"],
+    "removed": ["store.custom#sucursalesnueva"]
+  }
+}
+```
+
+Si el repo ya coincide con el CMS, `committed` es `false`, `commitSha` es `null` y no se
+genera ningún commit —ni build del theme—. `files.written` lista solo lo que realmente
+cambió: el plan compara el SHA de blob de cada archivo generado contra el del árbol del
+repo.
+
+**Es autoritativo.** `routes.json` se **reescribe** (no se mergea como en `/_v/deploy`) y
+se borra todo `.jsonc` bajo `store/blocks/pages/custom/` que no corresponda a una página del
+CMS. Nada fuera de `store/` se toca, y `custom-navbar.jsonc` y `home.jsonc` se sobrescriben
+pero nunca se borran.
+
+Asunción: **`routes.json` es propiedad exclusiva del CMS.** Una ruta agregada a mano al
+theme se pierde en la primera reconciliación.
+
+**Todo o nada.** Las tres queries y el build ocurren en memoria; recién al final hay un
+único commit. Si Strapi falla, no se commitea nada.
+
+Diseño completo en
+[`docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md`](docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md).
+
 ### Bloques soportados
 
 Se resuelven por `appName` del contenido de Strapi:
@@ -235,14 +281,6 @@ Se resuelven por `appName` del contenido de Strapi:
 - **Custom page** (`strategies/layout/custom-page/custompage-constants.ts`): `RichText`, `PaymentGroupCard`, `PaymentTab`, `PaymentTabGroup`, `Form`, `FAQ`, `BranchSelector`.
 
 Un `appName` sin processor se ignora con un warning; no rompe el deploy.
-
-## Trabajo planificado
-
-`POST /_v/reconcile` — lee todo el CMS y deja el theme exactamente en ese estado, en un
-único commit, para corregir el drift que el deploy incremental acumula (rutas huérfanas,
-secciones que se quedaron viejas porque su trigger no corrió). Diseñado y aprobado,
-**todavía sin implementar**:
-[`docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md`](docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md).
 
 ## install
 node version v20

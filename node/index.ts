@@ -3,6 +3,7 @@ import { Service } from '@vtex/api'
 
 import { Clients } from './clients'
 import { deploy } from './middlewares/deploy'
+import { reconcile } from './middlewares/reconcile'
 
 const TIMEOUT_MS = 800
 
@@ -34,5 +35,6 @@ export default new Service({
   clients,
   routes: {
     deploy: [deploy],
+    reconcile: [reconcile],
   },
 })

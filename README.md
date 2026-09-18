@@ -7,10 +7,14 @@ repositorio de GitHub del theme (`lindoSoftware/lindo-vtexio-store-theme`).
 Flujo general:
 
 ```
-POST /_v/deploy  →  SectionStrategy (lee Strapi)
-                 →  BuildJsonCommand (arma los .jsonc del theme)
-                 →  CommitJsonCommand (commitea en GitHub)
+Strapi (lifecycle hook)  →  Jenkins  →  POST /_v/deploy
+                                        →  SectionStrategy (lee Strapi)
+                                        →  BuildJsonCommand (arma los .jsonc del theme)
+                                        →  CommitJsonCommand (commitea en GitHub)
 ```
+
+Nadie llama al endpoint a mano: lo dispara el CMS en cada guardado. Ver
+[Quién dispara el deploy](#quién-dispara-el-deploy).
 
 ## Estructura de servicio VTEX IO
 
@@ -33,8 +37,6 @@ POST /_v/deploy  →  SectionStrategy (lee Strapi)
 │   ├── env.ts                   # Constantes de entorno (repo de GitHub, paths)
 │   ├── index.ts                 # Punto de entrada del servicio
 │   ├── service.json             # Configuración del servicio (rutas, replicas)
-├── graphql/
-│   ├── schema.graphql           # Esquema GraphQL
 ├── manifest.json                # Configuración del proyecto
 ├── package.json                 # Dependencias del proyecto
 └── README.md                    # Documentación del proyecto
@@ -53,6 +55,30 @@ Se configuran en el admin de VTEX (`settingsSchema` del `manifest.json`):
 
 Constantes fijas en `node/env.ts`: `GIT_OWNER`, `GIT_REPOSITORY`, `GIT_API_URL` y
 `CUSTOM_PAGE_PATH`.
+
+## Quién dispara el deploy
+
+El hook vive en `src/index.ts` del repo `lindo-vtexio-strapi-coco`, y el pipeline de ese
+mismo repo (`jenkinsfile`) reenvía su parámetro `BODY` **verbatim** a este endpoint.
+
+Strapi tiene suscritos exactamente tres modelos y `section` sale de
+`model.uid.split('.').pop()`, así que el conjunto de requests posibles es cerrado:
+
+| Cambio en el CMS | Payload |
+| --- | --- |
+| `navbar` creado o editado | `{"section":"navbar"}` |
+| `home-page` creado o editado | `{"section":"home-page"}` |
+| `custom-page` creada o editada | `{"section":"custom-page","variables":{"filters":{"slug":{"eq":"<slug>"}}}}` |
+| `custom-page` con el slug renombrado | el anterior **+** `"previousSlug":"<slug-viejo>"` |
+| `custom-page` eliminada | `{"section":"custom-page","deleted":true,"previousSlug":"<slug>"}` |
+
+Dos huecos de ese hook, que explican buena parte del drift que se acumula en el theme:
+
+- **No hay request de borrado para `navbar` ni `home-page`.** El `afterDelete` de Strapi
+  corta para todo lo que no sea `custom-page`.
+- **Una `custom-page` borrada sin slug conocido no dispara nada.** Si el slug no está ni en
+  `event.state` ni en `event.result`, Strapi loguea un warning y no llama a Jenkins: la
+  ruta y el `.jsonc` quedan huérfanos y ningún deploy posterior los toca.
 
 ## Endpoints disponibles
 
@@ -74,7 +100,12 @@ Público. Construye y commitea el layout de una sección.
 ```
 
 - `section`: `"navbar"` | `"home-page"` | `"custom-page"`
-- `variables`: opcional, se pasa como variables a la query de Strapi (solo lo usa `custom-page`).
+- `variables`: opcional, se pasa tal cual como variables a la query de Strapi (solo lo usa
+  `custom-page`). **Si se omite**, el `$filters` de `CUSTOM_PAGE_QUERY` queda nulo y la
+  query devuelve *todas* las custom pages: un `{"section":"custom-page"}` pelado regenera el
+  layout de todas y reescribe `routes.json` con las rutas de todas ellas. Strapi nunca manda
+  ese payload —siempre filtra por slug—, pero es válido y es la forma de republicar todo a
+  mano.
 - `previousSlug`: opcional, solo para `custom-page`. Slug con el que la página estaba
   publicada antes de renombrarla en el CMS — ver [Renombrado de custom pages](#renombrado-de-custom-pages).
 - `deleted`: opcional, solo para `custom-page` y siempre junto a `previousSlug`. La
@@ -98,11 +129,14 @@ Público. Construye y commitea el layout de una sección.
 
 **Respuesta error**
 
-`400` si el request está mal formado, `500` si falló el deploy:
-
 ```json
 { "success": false, "error": "Missing required setting: strapiURL" }
 ```
+
+`400` solo en los dos casos de mal uso de `deleted`: mandarlo con una `section` distinta de
+`custom-page`, o sin `previousSlug`. Son los únicos `BadRequestError` del servicio. Todo lo
+demás responde `500`: JSON inválido, un `section` inexistente, un setting que falta, Strapi
+caído o GitHub rechazando el commit.
 
 ### Secciones y archivos generados
 
@@ -202,23 +236,13 @@ Se resuelven por `appName` del contenido de Strapi:
 
 Un `appName` sin processor se ignora con un warning; no rompe el deploy.
 
-## Graphql disponibles
+## Trabajo planificado
 
-
-## Queries
-
-ConfigView
-```
-query {
-  configView {
-    websiteEnabled
-    substitutionCriteriaEnabled
-    addToCartWithSellerEnabled
-		incrementerInputEnabled
-    cartsByCategories
-  }
-}
-```
+`POST /_v/reconcile` — lee todo el CMS y deja el theme exactamente en ese estado, en un
+único commit, para corregir el drift que el deploy incremental acumula (rutas huérfanas,
+secciones que se quedaron viejas porque su trigger no corrió). Diseñado y aprobado,
+**todavía sin implementar**:
+[`docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md`](docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md).
 
 ## install
 node version v20

@@ -278,9 +278,10 @@ Mismo shape que `/_v/deploy`. Este endpoint no valida body, así que nunca respo
 **Es autoritativo.** `routes.json` se **reescribe** (no se mergea como en `/_v/deploy`) y
 se borra todo `.jsonc` bajo `store/blocks/pages/custom/` que no corresponda a una página del
 CMS. Nada fuera de `store/` se toca, y `custom-navbar.jsonc` y `home.jsonc` se sobrescriben
-pero nunca se borran. Si una custom page se publica justo entre la lectura de Strapi y el
-commit, su `.jsonc` queda pero pierde su entrada en `routes.json` —reconcile sobrescribe en
-vez de mergear—; se autocorrige en la corrida siguiente.
+pero nunca se borran. Si una custom page se publica mientras corre el reconcile, su estado
+depende del timing: si ocurre después del snapshot del repo, el `.jsonc` sobrevive pero pierde
+la ruta en `routes.json`; si ocurre antes, se interpreta como huérfano y se borra el archivo.
+En ambos casos queda inalcanzable momentáneamente y se autocorrige en la corrida siguiente.
 
 Asunción: **`routes.json` es propiedad exclusiva del CMS.** Una ruta agregada a mano al
 theme se pierde en la primera reconciliación.

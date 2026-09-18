@@ -111,6 +111,8 @@ export class CustomPageRemovalService {
    * + el slug como nombre de archivo.
    */
   private static pageFilePath(slug: string, routePath: string): string {
-    return normalizeRepoPath(`${env.CUSTOM_PAGE_PATH}/${routePath}/${slug}.jsonc`)
+    return normalizeRepoPath(
+      `${env.CUSTOM_PAGE_PATH}/${routePath}/${slug}.jsonc`
+    )
   }
 }

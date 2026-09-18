@@ -118,11 +118,63 @@ describe('ReconcilePlanService.plan', () => {
       [SUCURSALES]: trackedFile('{"page":1}'),
       'store/blocks/header/custom-navbar.jsonc': trackedFile('{"nav":1}'),
       'store/blocks/pages/home/home.jsonc': trackedFile('{"home":1}'),
+      // No es `.jsonc`: la mitad del filtro que ningún fixture ejercitaba.
+      'store/blocks/pages/custom/sucursales/banner.png': trackedFile('x'),
+      // Directorio hermano de custom pages, no un hijo: si CUSTOM_PREFIX
+      // perdiera la barra final, este matchearía por `startsWith` igual.
+      'store/blocks/pages/customer/x.jsonc': trackedFile('x'),
     })
 
     const plan = await ReconcilePlanService.plan(ctx, generatedForSucursales())
 
     expect(plan.deletions).toEqual([])
+  })
+
+  it('trata un build sin custom pages como routes.json vacío', async () => {
+    const { ctx } = buildGithubCtx({
+      [ROUTES]: trackedFile(routesConSucursales),
+      [SUCURSALES]: trackedFile('{"page":1}'),
+    })
+
+    // Forma real de un CMS sin custom pages: navbar y home-page sí emiten
+    // archivo, CustomPageBuildJsonStrategy no emite ninguno.
+    const plan = await ReconcilePlanService.plan(ctx, [
+      {
+        path: 'store/blocks/header',
+        filename: 'custom-navbar.jsonc',
+        content: '{"nav":1}',
+      },
+      {
+        path: 'store/blocks/pages/home',
+        filename: 'home.jsonc',
+        content: '{"home":1}',
+      },
+    ])
+
+    expect(plan.deletions).toEqual([SUCURSALES])
+    expect(plan.routesFinal).toEqual([])
+    expect(plan.upserts.map((file) => file.path)).toContain(ROUTES)
+  })
+
+  it('aborta si un archivo generado escapa del theme root', async () => {
+    const { ctx } = buildGithubCtx({
+      [ROUTES]: trackedFile(routesConSucursales),
+    })
+
+    await expect(
+      ReconcilePlanService.plan(ctx, [
+        {
+          path: 'store/blocks/pages/custom/../../../header',
+          filename: 'sucursales.jsonc',
+          content: '{"page":1}',
+        },
+        {
+          path: 'store',
+          filename: 'routes.json',
+          content: routesConSucursales,
+        },
+      ])
+    ).rejects.toThrow('theme')
   })
 
   it('aborta si GitHub devuelve el árbol truncado', async () => {

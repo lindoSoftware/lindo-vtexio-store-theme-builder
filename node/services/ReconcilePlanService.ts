@@ -19,8 +19,14 @@ export interface ReconcilePlan {
   routesRemoved: string[]
 }
 
+/** Raíz del theme: nada que el plan produzca puede caer fuera de acá. */
+const THEME_ROOT = 'store/'
+
 const ROUTES_PATH = normalizeRepoPath(env.ROUTES_FILE_PATH)
-const CUSTOM_PREFIX = normalizeRepoPath(env.CUSTOM_PAGE_PATH)
+
+// La barra final no es cosmética: sin ella `startsWith` matchearía también
+// directorios hermanos como `store/blocks/pages/customer/`.
+const CUSTOM_PREFIX = normalizeRepoPath(`${env.CUSTOM_PAGE_PATH}/`)
 
 /**
  * Compara lo que el CMS produjo contra lo que hay publicado en el repo.
@@ -36,11 +42,12 @@ export class ReconcilePlanService {
   ): Promise<ReconcilePlan> {
     const files = this.withRoutesFile(generated)
 
-    // El prefijo es `store/` y no el de custom pages porque hace falta el SHA de
-    // TODOS los archivos generados: sin el de routes.json, custom-navbar.jsonc y
-    // home.jsonc, esos tres se verían como cambiados en cada corrida.
+    // El prefijo es el root del theme y no el de custom pages porque hace
+    // falta el SHA de TODOS los archivos generados: sin el de routes.json,
+    // custom-navbar.jsonc y home.jsonc, esos tres se verían como cambiados en
+    // cada corrida.
     const { files: repoFiles, truncated } = await ctx.clients.github.listFiles(
-      'store/'
+      THEME_ROOT
     )
 
     if (truncated) {
@@ -74,17 +81,35 @@ export class ReconcilePlanService {
   }
 
   /**
-   * Normaliza los paths y garantiza que `routes.json` esté siempre presente.
+   * Normaliza los paths, garantiza que `routes.json` esté siempre presente y
+   * rechaza cualquier archivo que quede fuera del theme.
+   *
+   * Precondición: `generated` tiene que ser la salida COMPLETA del build de
+   * las tres secciones (navbar, home-page, custom pages). Pasarle un
+   * subconjunto acá reescribe `routes.json` a `{}` y borra toda custom page
+   * que no esté en ese subconjunto, aunque siga publicada en el CMS —quien
+   * llama es el único que puede garantizar que el build fue completo.
    *
    * `CustomPageBuildJsonStrategy` no emite ningún archivo cuando no queda
    * ninguna página en pie, ni siquiera el `routes.json`. Para el modo
    * autoritativo eso significa exactamente "el CMS no tiene rutas": `{}`.
    */
   private static withRoutesFile(generated: GeneratedFile[]): PlannedFile[] {
-    const files = generated.map((file) => ({
-      path: normalizeRepoPath(`${file.path}/${file.filename}`),
-      content: file.content,
-    }))
+    const files = generated.map((file) => {
+      const path = normalizeRepoPath(`${file.path}/${file.filename}`)
+
+      // `normalizeRepoPath` solo colapsa barras: un `..` literal sobrevive
+      // normalizado y puede aterrizar en cualquier archivo del theme —no solo
+      // fuera de `store/`— porque un `startsWith` sobre el string crudo no
+      // distingue un path real de uno con navegación relativa adentro.
+      if (!path.startsWith(THEME_ROOT) || path.split('/').includes('..')) {
+        throw new Error(
+          `El build generó un path fuera del theme: "${path}". Reconcile nunca escribe fuera de "${THEME_ROOT}".`
+        )
+      }
+
+      return { path, content: file.content }
+    })
 
     if (!files.some((file) => file.path === ROUTES_PATH)) {
       files.push({ path: ROUTES_PATH, content: '{}' })

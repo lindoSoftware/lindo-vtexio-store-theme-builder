@@ -271,9 +271,7 @@ la guarda es para que un futuro crecimiento falle ruidoso y no borre de más.
   "timeout": 60,
   "routes": {
     "deploy":    { "path": "/_v/deploy",    "public": true, "method": "POST" },
-    "reconcile": { "path": "/_v/reconcile", "public": false, "method": "POST",
-                   "policies": [{ "effect": "allow", "actions": ["post"],
-                                  "principals": ["vrn:vtex.vtex-id:*:*:*:user/vtexappkey-lindoqa-*"] }],
+    "reconcile": { "path": "/_v/reconcile", "public": true, "method": "POST",
                    "rateLimitPerReplica": { "concurrent": 1 } }
   }
 }
@@ -286,13 +284,13 @@ Tres cosas que conviene tener escritas, porque no son obvias:
   `extensible`, `settingsType` y `rateLimitPerReplica`. Subirlo a 60s lo sube también para
   `/_v/deploy`. Es aceptable: un timeout es un techo, no una demora. El costo real es que
   un request colgado ocupa un worker 60s en vez de 10.
-- **Una ruta privada sin `policies` no la llama nadie.** `public: false` por sí solo no
-  "pide login": deja la ruta inaccesible para todos, usuarios admin incluidos. Habilitar a
-  alguien requiere una *resource-based policy*, y ni usuarios ni appKeys entran por
-  defecto. El principal usa el servicio `vtex.vtex-id` y el path `user/{email}` o
-  `user/vtexappkey-{account}-{hash}`; el wildcard de arriba cubre cualquier appKey de
-  `lindoqa`. Quien llama manda `X-VTEX-API-AppKey` y `X-VTEX-API-AppToken`, y el rechazo
-  ocurre en el borde, antes del handler: un 403 no trae el `{success:false}` del servicio.
+- **`public: true` no es solo "sin auth": es dónde se publica la ruta.** Una ruta privada
+  desaparece del dominio de la tienda y queda solo en `app.io.vtex.com/{app}/v0/{account}/
+  {workspace}/...`, que además no acepta `X-VTEX-API-AppKey`/`AppToken` (`source:
+  Vtex.Kube.Router`). Por eso la ruta sigue pública y la autorización vive en el handler:
+  header `X-Reconcile-Token` contra el setting `reconcileToken`, comparado en tiempo
+  constante, y **fallando cerrado** si el setting falta. Se probó primero con `public:
+  false` + *resource-based policy* y se descartó por esto.
 - **`rateLimitPerReplica` sí es por ruta, pero por réplica.** `concurrent: 1` limita las
   reconciliaciones simultáneas dentro de una réplica; `minReplicas` es 2, así que dos
   reconciliaciones en réplicas distintas pueden seguir corriendo al mismo tiempo. Reduce la
@@ -326,12 +324,11 @@ pipeline {
         stage('Reconcile CMS -> Store Theme') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'vtex-app-key', variable: 'VTEX_APP_KEY'),
-                    string(credentialsId: 'vtex-app-token', variable: 'VTEX_APP_TOKEN'),
+                    string(credentialsId: 'reconcile-token', variable: 'RECONCILE_TOKEN'),
                 ]) {
                     script {
-                        // La ruta es privada: sin estos headers VTEX responde 403
-                        // en el borde y el handler ni se ejecuta.
+                        // Sin este header el servicio responde 401 y no lee el
+                        // CMS ni toca GitHub.
                         //
                         // validResponseCodes abarca todo por la misma razon que en
                         // jenkinsfile: si httpRequest tira la excepcion se pierde el
@@ -342,8 +339,7 @@ pipeline {
                             contentType: 'APPLICATION_JSON',
                             requestBody: '{}',
                             customHeaders: [
-                                [name: 'X-VTEX-API-AppKey', value: VTEX_APP_KEY, maskValue: true],
-                                [name: 'X-VTEX-API-AppToken', value: VTEX_APP_TOKEN, maskValue: true],
+                                [name: 'X-Reconcile-Token', value: RECONCILE_TOKEN, maskValue: true],
                             ],
                             consoleLogResponseBody: true,
                             validResponseCodes: '100:599'
@@ -379,8 +375,7 @@ pipeline {
 ```
 
 Diferencias con el pipeline actual: **sin parámetros** (no hay `BODY` ni `BRANCH_NAME`),
-con `triggers`, y con credenciales —el de deploy pega contra una ruta pública y no manda
-ninguna—.
+con `triggers`, y con una credencial —el de deploy no manda ninguna—.
 
 `Dockerfile.jenkins` suma `credentials-binding`, que aporta el paso `withCredentials`.
 `workflow-aggregator`, `http_request` y `mailer` ya estaban.
@@ -388,10 +383,9 @@ ninguna—.
 ### Alta del job
 
 Igual que el actual —el pipeline script se pega a mano, no se carga desde SCM—, salvo que
-no hay parámetros que declarar. Antes hay que cargar dos credenciales de tipo *secret
-text*, con IDs `vtex-app-key` y `vtex-app-token`: son la appKey/appToken de una integración
-de la cuenta `lindoqa` con permiso sobre el workspace. El mismo par ya vive en el `.env` de
-Strapi como `VTEX_APP_KEY`/`VTEX_APP_TOKEN`.
+no hay parámetros que declarar. Antes hay que cargar una credencial de tipo *secret
+text* con ID `reconcile-token`, cuyo valor es el mismo que el setting `reconcileToken` de la
+app en el admin de VTEX. Es un secreto nuevo: se genera una vez y se pega en los dos lados.
 
 Un paso que se olvida fácil:
 
@@ -438,8 +432,8 @@ Sin tests de integración contra GitHub ni Strapi reales.
 | Un CMS vacío o mal respondido borra todo el contenido custom | Las queries que fallan abortan sin commitear. Pero un Strapi que responde `{ customPages: [] }` legítimamente sí vacía el theme — es el comportamiento pedido. El primer run manual es la oportunidad de verificarlo. |
 | El timeout de 60s aplica también a `/_v/deploy` | Es un techo, no una demora. Impacto: un request colgado ocupa un worker 60s. |
 | Dos reconciliaciones concurrentes | `rateLimitPerReplica: { concurrent: 1 }` reduce la ventana, pero es por réplica y `minReplicas` es 2, así que no la elimina. La que pierde la carrera falla en el `updateRef` (sin `force`) y responde 500: una corrida fallida, no un repo corrupto. |
-| El endpoint es destructivo | **Cerrado** (2026-09-21): la ruta pasó a `public: false` con una policy que solo habilita a las appKeys de `lindoqa`, y Jenkins llama con `X-VTEX-API-AppToken`. Ya no alcanza con conocer la URL del workspace. `/_v/deploy` sigue público a propósito: solo agrega contenido, y cerrarlo obligaría a tocar el job que ya corre en producción. |
-| El token de la appKey vive en Jenkins | Credencial de tipo *secret text*, inyectada con `withCredentials` y enmascarada en los headers. Quien tenga acceso al job puede accionar el reconcile — es el mismo nivel de confianza que ya tiene el job de deploy. |
+| El endpoint es destructivo | **Cerrado** (2026-09-21) con un secreto compartido: header `X-Reconcile-Token` contra el setting `reconcileToken`. Ya no alcanza con conocer la URL. Más débil que cerrarlo en la plataforma —la ruta sigue alcanzable y rechazamos nosotros— pero `public: false` la saca del dominio de la tienda, que es donde el job la necesita. `/_v/deploy` sigue sin token a propósito: solo agrega contenido, y sumárselo obligaría a tocar el job que ya corre en producción. |
+| El secreto vive en Jenkins y en los settings de la app | Credencial de tipo *secret text*, inyectada con `withCredentials` y enmascarada en el header. Quien tenga acceso al job puede accionar el reconcile — mismo nivel de confianza que ya tiene el job de deploy. Rotarlo es cambiar los dos lados. |
 
 ## Trabajo futuro (fuera de este spec)
 

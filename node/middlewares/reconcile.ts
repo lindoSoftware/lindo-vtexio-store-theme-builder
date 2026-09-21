@@ -1,3 +1,5 @@
+import { createHash, timingSafeEqual } from 'crypto'
+
 import type {
   ReconcileResponse,
   ReconcileResponseSuccess,
@@ -6,6 +8,11 @@ import { ReconcileContentService } from '../services/ReconcileContentService'
 import { ReconcilePlanService } from '../services/ReconcilePlanService'
 import { StrapiConfigService } from '../services/StrapiConfigService'
 import { initGitHubClient } from '../utils/github.helper'
+import { SettingsHelper } from '../utils/SettingsHelper'
+import { UnauthorizedError } from '../utils/UnauthorizedError'
+
+/** Header con el secreto compartido. Lo manda el job de Jenkins. */
+export const RECONCILE_TOKEN_HEADER = 'x-reconcile-token'
 
 /**
  * Deja el store theme exactamente en el estado que publica el CMS.
@@ -16,6 +23,8 @@ import { initGitHubClient } from '../utils/github.helper'
  */
 export async function reconcile(ctx: Context, next: () => Promise<any>) {
   try {
+    await assertAuthorized(ctx)
+
     ctx.status = 200
     ctx.body = await run(ctx)
   } catch (err: any) {
@@ -24,11 +33,54 @@ export async function reconcile(ctx: Context, next: () => Promise<any>) {
       error: err.message ?? String(err),
     }
 
-    ctx.status = 500
+    // Solo el 401 propaga su status: una falla de GitHub o de Strapi sigue
+    // saliendo como 500.
+    ctx.status = err instanceof UnauthorizedError ? err.status : 500
     ctx.body = response
   }
 
   await next()
+}
+
+/**
+ * La ruta es pública —tiene que seguir viviendo en el dominio de la tienda, que
+ * es donde VTEX publica solo las rutas `public: true`—, así que el control de
+ * acceso es acá: sin el header correcto no se lee el CMS ni se toca GitHub.
+ *
+ * Falla cerrado. Si el setting no está configurado nadie pasa, en vez de quedar
+ * un endpoint destructivo abierto por un descuido de configuración.
+ */
+async function assertAuthorized(ctx: Context): Promise<void> {
+  const expected = await new SettingsHelper(ctx).getSetting('reconcileToken')
+
+  if (!expected) {
+    ctx.vtex.logger.error({
+      message:
+        '[reconcile] Falta el setting `reconcileToken`. Se rechaza todo request hasta configurarlo.',
+    })
+
+    throw new UnauthorizedError()
+  }
+
+  if (!secretsMatch(ctx.get(RECONCILE_TOKEN_HEADER), expected)) {
+    ctx.vtex.logger.warn({
+      message: `[reconcile] Request rechazado: header ${RECONCILE_TOKEN_HEADER} ausente o incorrecto.`,
+    })
+
+    throw new UnauthorizedError()
+  }
+}
+
+/**
+ * Comparación en tiempo constante. Se hashean los dos lados antes porque
+ * `timingSafeEqual` tira si los buffers miden distinto, y esa excepción sería
+ * en sí misma una filtración del largo del secreto.
+ */
+function secretsMatch(provided: string, expected: string): boolean {
+  const digest = (value: string) =>
+    createHash('sha256').update(value, 'utf8').digest()
+
+  return timingSafeEqual(digest(provided), digest(expected))
 }
 
 async function run(ctx: Context): Promise<ReconcileResponseSuccess> {

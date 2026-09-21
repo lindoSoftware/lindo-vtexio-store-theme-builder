@@ -340,6 +340,37 @@ theme se pierde en la primera reconciliación.
 `routes.removed`— para auditar el drift real del repo contra el CMS antes de que quede
 desatendido.
 
+### Estado operativo (2026-09-21)
+
+**El endpoint está validado pero todavía no corre solo, y el job de Jenkins no está
+creado.** Es a propósito: la versión instalada en el workspace `staging` es la `0.0.1`, que
+no tiene esta ruta. Mientras no se publique una versión nueva, el endpoint solo existe
+mientras alguien tenga un `vtex link` abierto, y un cron nocturno fallaría con 404 todas las
+noches. Crear el job antes de publicar solo genera ruido.
+
+Para destrabarlo hace falta que alguien con rol de publisher del vendor `lindo` corra:
+
+```sh
+vtex release patch stable      # bump local + tag; dispara lint.sh via prereleasy
+vtex publish
+vtex use staging && vtex install lindo.store-theme-builder@<version>
+```
+
+Hasta entonces, el reconcile es un procedimiento manual: linkear y pegarle con el `curl` de
+más arriba. Es idempotente —una segunda corrida seguida responde `committed: false` sin
+commitear—, así que correrlo a mano después de un rename sospechoso cubre el caso que
+motivó todo esto.
+
+**Lo que ya se verificó contra el repo real**, el 2026-09-21, sobre la rama `reconcile-test`
+(conservada a propósito como registro) y después sobre `lindoqa`:
+
+- El drift existía y era el esperado: `store.custom#sucursales` y
+  `store.custom#sucursalesnueva` apuntaban **las dos al mismo `path`** (`/sucursales`),
+  porque un rename dejó viva la ruta vieja. El reconcile borró la huérfana y su `.jsonc`.
+- No se tocó nada más: 48 líneas borradas, cero agregadas, y `routes.json` de este theme
+  contiene solo custom pages, así que la reescritura total no se llevó rutas del store.
+- Segunda corrida consecutiva: `committed: false`, sin commit ni build del theme.
+
 Diseño completo en
 [`docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md`](docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md).
 

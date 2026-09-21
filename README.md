@@ -101,11 +101,14 @@ Público. Construye y commitea el layout de una sección.
 
 - `section`: `"navbar"` | `"home-page"` | `"custom-page"`
 - `variables`: opcional, se pasa tal cual como variables a la query de Strapi (solo lo usa
-  `custom-page`). **Si se omite**, el `$filters` de `CUSTOM_PAGE_QUERY` queda nulo y la
-  query devuelve *todas* las custom pages: un `{"section":"custom-page"}` pelado regenera el
-  layout de todas y reescribe `routes.json` con las rutas de todas ellas. Strapi nunca manda
-  ese payload —siempre filtra por slug—, pero es válido y es la forma de republicar todo a
-  mano.
+  `custom-page`). **Si se omite**, el `$filters` de `CUSTOM_PAGE_QUERY` queda nulo, así que
+  no filtra por slug. Que además traiga *todas* las custom pages depende de que la query
+  tenga paginación explícita sin límite práctico —sin eso, el default de Strapi corta en 10
+  (el plugin de GraphQL no define `defaultLimit` y cae al de `@strapi/utils`; el
+  `defaultLimit: 25` de `config/api.ts` es de `rest`, no de GraphQL)—. Con eso, un
+  `{"section":"custom-page"}` pelado regenera el layout de todas y reescribe `routes.json`
+  con las rutas de todas ellas. Strapi nunca manda ese payload —siempre filtra por slug—,
+  pero es válido y es la forma de republicar todo a mano.
 - `previousSlug`: opcional, solo para `custom-page`. Slug con el que la página estaba
   publicada antes de renombrarla en el CMS — ver [Renombrado de custom pages](#renombrado-de-custom-pages).
 - `deleted`: opcional, solo para `custom-page` y siempre junto a `previousSlug`. La
@@ -227,6 +230,108 @@ GitHub puede tardar en reflejar un commit recién hecho— escribiría un `route
 sin la página que se acababa de publicar. Por eso `CustomPageRemovalService` solo
 *reporta* qué dar de baja y no toca el repo.
 
+### `POST /_v/reconcile`
+
+Sin parámetros. Lee **todo** el CMS y deja el theme exactamente en ese estado, en
+un único commit. Corrige el drift que el deploy incremental acumula: rutas huérfanas de
+renames que perdieron su `previousSlug`, y secciones que se quedaron viejas porque su
+trigger no corrió.
+
+**Body:** `{}` (o ausente). Cualquier campo que llegue se ignora.
+
+**Requiere autenticación**, a diferencia de `/_v/deploy`. La ruta es `public: false` y
+expone una *resource-based policy* en `node/service.json` que habilita a las appKeys de la
+cuenta:
+
+```json
+"policies": [{
+  "effect": "allow",
+  "actions": ["post"],
+  "principals": ["vrn:vtex.vtex-id:*:*:*:user/vtexappkey-lindoqa-*"]
+}]
+```
+
+Quien llame manda el par de headers de integración de VTEX:
+
+```sh
+curl -X POST https://staging--lindoqa.myvtex.com/_v/reconcile \
+  -H 'Content-Type: application/json' \
+  -H "X-VTEX-API-AppKey: $VTEX_APP_KEY" \
+  -H "X-VTEX-API-AppToken: $VTEX_APP_TOKEN" \
+  -d '{}'
+```
+
+La política **no es opcional**: en VTEX IO una ruta privada sin `policies` no la puede
+llamar nadie, ni siquiera un admin de la cuenta. Y como el rechazo ocurre en el borde,
+antes del handler, un 401/403 devuelve el error de la plataforma y no el
+`{success:false}` de este servicio.
+
+El wildcard cubre cualquier appKey de `lindoqa`. Para restringirlo a una sola integración,
+reemplazar `vtexappkey-lindoqa-*` por la appKey completa. Para habilitar además a personas,
+agregar un principal `user/{email}` — por defecto los usuarios tampoco entran.
+
+`/_v/deploy` sigue siendo público: lo llama la misma pipe, pero solo agrega contenido y
+cerrarlo obligaría a tocar el job que ya está en producción. La asimetría es deliberada —
+reconcile es el único endpoint que **borra**.
+
+**Respuesta OK (200)**
+
+```json
+{
+  "success": true,
+  "committed": true,
+  "commitSha": "a1b2c3d",
+  "files": {
+    "written": ["store/blocks/pages/custom/sucursales/sucursales.jsonc", "store/routes.json"],
+    "deleted": ["store/blocks/pages/custom/sucursales/sucursalesnueva.jsonc"]
+  },
+  "routes": {
+    "final": ["store.custom#sucursales"],
+    "removed": ["store.custom#sucursalesnueva"]
+  }
+}
+```
+
+Si el repo ya coincide con el CMS, `committed` es `false`, `commitSha` es `null` y no se
+genera ningún commit —ni build del theme—. `files.written` lista solo lo que realmente
+cambió: el plan compara el SHA de blob de cada archivo generado contra el del árbol del
+repo.
+
+`committed: false` tiene un segundo caso, con `files.written` **no vacío**: el plan detectó
+diferencias, pero al momento de commitear el árbol resultante ya coincidía con el HEAD del
+repo (por ejemplo, un `/_v/deploy` publicó el mismo cambio mientras tanto). `commitFiles` lo
+resuelve como `skipped`, no como error.
+
+**Respuesta error (500)**
+
+```json
+{ "success": false, "error": "Error executing Strapi GraphQL query: ..." }
+```
+
+Mismo shape que `/_v/deploy`. Este endpoint no valida body, así que nunca responde `400`.
+
+**Es autoritativo.** `routes.json` se **reescribe** (no se mergea como en `/_v/deploy`) y
+se borra todo `.jsonc` bajo `store/blocks/pages/custom/` que no corresponda a una página del
+CMS. Nada fuera de `store/` se toca, y `custom-navbar.jsonc` y `home.jsonc` se sobrescriben
+pero nunca se borran. Si una custom page se publica mientras corre el reconcile, su estado
+depende del timing: si ocurre después del snapshot del repo, el `.jsonc` sobrevive pero pierde
+la ruta en `routes.json`; si ocurre antes, se interpreta como huérfano y se borra el archivo.
+En ambos casos queda inalcanzable momentáneamente y se autocorrige en la corrida siguiente.
+
+Asunción: **`routes.json` es propiedad exclusiva del CMS.** Una ruta agregada a mano al
+theme se pierde en la primera reconciliación.
+
+**Todo o nada.** Las tres queries y el build ocurren en memoria; recién al final hay un
+único commit. Si Strapi falla, no se commitea nada.
+
+**Primera corrida: a mano.** Antes de dejar el cron de Jenkins suelto, correr el job con
+"Build Now" una vez y revisar la respuesta —en particular `files.deleted` y
+`routes.removed`— para auditar el drift real del repo contra el CMS antes de que quede
+desatendido.
+
+Diseño completo en
+[`docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md`](docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md).
+
 ### Bloques soportados
 
 Se resuelven por `appName` del contenido de Strapi:
@@ -235,14 +340,6 @@ Se resuelven por `appName` del contenido de Strapi:
 - **Custom page** (`strategies/layout/custom-page/custompage-constants.ts`): `RichText`, `PaymentGroupCard`, `PaymentTab`, `PaymentTabGroup`, `Form`, `FAQ`, `BranchSelector`.
 
 Un `appName` sin processor se ignora con un warning; no rompe el deploy.
-
-## Trabajo planificado
-
-`POST /_v/reconcile` — lee todo el CMS y deja el theme exactamente en ese estado, en un
-único commit, para corregir el drift que el deploy incremental acumula (rutas huérfanas,
-secciones que se quedaron viejas porque su trigger no corrió). Diseñado y aprobado,
-**todavía sin implementar**:
-[`docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md`](docs/superpowers/specs/2026-09-18-reconcile-endpoint-design.md).
 
 ## install
 node version v20

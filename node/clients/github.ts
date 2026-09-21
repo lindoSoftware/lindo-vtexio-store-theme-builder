@@ -10,6 +10,12 @@ export interface GitHubUpsert {
   content: string
 }
 
+/** Un archivo del repo tal como lo lista el árbol de git. */
+export interface RepoFile {
+  path: string
+  sha: string
+}
+
 export default class GitHubClient extends ExternalClient {
   private octokit: Octokit
   private branch = 'main'
@@ -274,5 +280,36 @@ export default class GitHubClient extends ExternalClient {
         headers: {},
       }
     }
+  }
+
+  /**
+   * Lista los archivos del branch bajo un prefijo, con el SHA de blob de cada
+   * uno. Una sola llamada sin importar cuántos archivos haya.
+   *
+   * `truncated` viene de GitHub: arriba de ~100k entradas el árbol llega
+   * incompleto. Se devuelve crudo porque quien decide qué hacer con un árbol
+   * incompleto es el que lo consume, no este cliente.
+   */
+  public async listFiles(
+    prefix: string
+  ): Promise<{ files: RepoFile[]; truncated: boolean }> {
+    const { data } = await this.octokit.git.getTree({
+      owner: ENV.GIT_OWNER ?? '',
+      repo: ENV.GIT_REPOSITORY ?? '',
+      tree_sha: this.branch,
+      recursive: 'true',
+    })
+
+    const files: RepoFile[] = []
+
+    for (const entry of data.tree) {
+      if (entry.type !== 'blob') continue
+      if (!entry.path || !entry.sha) continue
+      if (!entry.path.startsWith(prefix)) continue
+
+      files.push({ path: entry.path, sha: entry.sha })
+    }
+
+    return { files, truncated: Boolean(data.truncated) }
   }
 }

@@ -209,7 +209,12 @@ se commitee o se borre pasa por acá.
    - `NavbarStrategy.getData(ctx, null, strapi)`
    - `HomePageStrategy.getData(ctx, null, strapi)`
    - `CustomPageStrategy.getData(ctx, **undefined**, strapi)` — sin `variables`, el
-     `$filters` de `CUSTOM_PAGE_QUERY` queda nulo y la query devuelve **todas** las páginas.
+     `$filters` de `CUSTOM_PAGE_QUERY` queda nulo, pero eso solo saca el filtro por slug.
+     Lo que garantiza que vuelvan **todas** las páginas es que la query trae paginación
+     explícita sin límite práctico (`pagination: { limit: 2147483647 }`): sin eso, el
+     default de Strapi corta en 10 —el plugin de GraphQL no define `defaultLimit` y cae
+     al `10` de `@strapi/utils`; el `defaultLimit: 25` de `config/api.ts` es de `rest` y
+     esta query nunca lo lee.
 3. Las tres `BuildJsonStrategy` sobre esa data → un `GeneratedFile[]` único.
 4. `initGitHubClient(ctx)` y `ReconcilePlanService.plan(ctx, generatedFiles)`:
    - separa el `routes.json` generado (o `{}` si no se emitió) — ese es el contenido final;
@@ -266,21 +271,34 @@ la guarda es para que un futuro crecimiento falle ruidoso y no borre de más.
   "timeout": 60,
   "routes": {
     "deploy":    { "path": "/_v/deploy",    "public": true, "method": "POST" },
-    "reconcile": { "path": "/_v/reconcile", "public": true, "method": "POST",
+    "reconcile": { "path": "/_v/reconcile", "public": false, "method": "POST",
+                   "policies": [{ "effect": "allow", "actions": ["post"],
+                                  "principals": ["vrn:vtex.vtex-id:*:*:*:user/vtexappkey-lindoqa-*"] }],
                    "rateLimitPerReplica": { "concurrent": 1 } }
   }
 }
 ```
 
-Dos cosas que conviene tener escritas, porque no son obvias:
+Tres cosas que conviene tener escritas, porque no son obvias:
 
 - **`timeout` es del servicio, no de la ruta.** En `@vtex/api`, `timeout` vive en
   `RawServiceJSON` y `ServiceRoute` solo acepta `path`, `public`, `smartcache`,
   `extensible`, `settingsType` y `rateLimitPerReplica`. Subirlo a 60s lo sube también para
   `/_v/deploy`. Es aceptable: un timeout es un techo, no una demora. El costo real es que
   un request colgado ocupa un worker 60s en vez de 10.
-- **`rateLimitPerReplica` sí es por ruta.** `concurrent: 1` evita que dos reconciliaciones
-  simultáneas calculen su plan contra el mismo commit padre y una pise a la otra.
+- **Una ruta privada sin `policies` no la llama nadie.** `public: false` por sí solo no
+  "pide login": deja la ruta inaccesible para todos, usuarios admin incluidos. Habilitar a
+  alguien requiere una *resource-based policy*, y ni usuarios ni appKeys entran por
+  defecto. El principal usa el servicio `vtex.vtex-id` y el path `user/{email}` o
+  `user/vtexappkey-{account}-{hash}`; el wildcard de arriba cubre cualquier appKey de
+  `lindoqa`. Quien llama manda `X-VTEX-API-AppKey` y `X-VTEX-API-AppToken`, y el rechazo
+  ocurre en el borde, antes del handler: un 403 no trae el `{success:false}` del servicio.
+- **`rateLimitPerReplica` sí es por ruta, pero por réplica.** `concurrent: 1` limita las
+  reconciliaciones simultáneas dentro de una réplica; `minReplicas` es 2, así que dos
+  reconciliaciones en réplicas distintas pueden seguir corriendo al mismo tiempo. Reduce la
+  ventana de la carrera, no la elimina. El `updateRef` de `commitFiles` no manda `force`,
+  así que la que pierde la carrera falla ahí y responde 500 —cuesta una corrida fallida, no
+  corrompe el repo.
 
 ### Settings de la app
 
@@ -307,25 +325,37 @@ pipeline {
     stages {
         stage('Reconcile CMS -> Store Theme') {
             steps {
-                script {
-                    // validResponseCodes abarca todo por la misma razon que en
-                    // jenkinsfile: si httpRequest tira la excepcion se pierde el
-                    // cuerpo, y el motivo real viene en {success:false, error}.
-                    def response = httpRequest(
-                        url: API_POST_URL,
-                        httpMode: 'POST',
-                        contentType: 'APPLICATION_JSON',
-                        requestBody: '{}',
-                        consoleLogResponseBody: true,
-                        validResponseCodes: '100:599'
-                    )
+                withCredentials([
+                    string(credentialsId: 'vtex-app-key', variable: 'VTEX_APP_KEY'),
+                    string(credentialsId: 'vtex-app-token', variable: 'VTEX_APP_TOKEN'),
+                ]) {
+                    script {
+                        // La ruta es privada: sin estos headers VTEX responde 403
+                        // en el borde y el handler ni se ejecuta.
+                        //
+                        // validResponseCodes abarca todo por la misma razon que en
+                        // jenkinsfile: si httpRequest tira la excepcion se pierde el
+                        // cuerpo, y el motivo real viene en {success:false, error}.
+                        def response = httpRequest(
+                            url: API_POST_URL,
+                            httpMode: 'POST',
+                            contentType: 'APPLICATION_JSON',
+                            requestBody: '{}',
+                            customHeaders: [
+                                [name: 'X-VTEX-API-AppKey', value: VTEX_APP_KEY, maskValue: true],
+                                [name: 'X-VTEX-API-AppToken', value: VTEX_APP_TOKEN, maskValue: true],
+                            ],
+                            consoleLogResponseBody: true,
+                            validResponseCodes: '100:599'
+                        )
 
-                    if (response.status < 200 || response.status >= 300) {
-                        env.API_ERROR_MESSAGE = "❌ VTEX IO respondio ${response.status}: ${response.content}"
-                        error(env.API_ERROR_MESSAGE)
+                        if (response.status < 200 || response.status >= 300) {
+                            env.API_ERROR_MESSAGE = "❌ VTEX IO respondio ${response.status}: ${response.content}"
+                            error(env.API_ERROR_MESSAGE)
+                        }
+
+                        echo "Reconcile OK: ${response.content}"
                     }
-
-                    echo "Reconcile OK: ${response.content}"
                 }
             }
         }
@@ -348,16 +378,22 @@ pipeline {
 }
 ```
 
-Diferencias con el pipeline actual: **sin parámetros** (no hay `BODY` ni `BRANCH_NAME`), y
-con `triggers`.
+Diferencias con el pipeline actual: **sin parámetros** (no hay `BODY` ni `BRANCH_NAME`),
+con `triggers`, y con credenciales —el de deploy pega contra una ruta pública y no manda
+ninguna—.
 
-`Dockerfile.jenkins` no cambia: `workflow-aggregator`, `http_request` y `mailer` ya están
-horneados y son todo lo que este job necesita.
+`Dockerfile.jenkins` suma `credentials-binding`, que aporta el paso `withCredentials`.
+`workflow-aggregator`, `http_request` y `mailer` ya estaban.
 
 ### Alta del job
 
 Igual que el actual —el pipeline script se pega a mano, no se carga desde SCM—, salvo que
-no hay parámetros que declarar. Un paso que se olvida fácil:
+no hay parámetros que declarar. Antes hay que cargar dos credenciales de tipo *secret
+text*, con IDs `vtex-app-key` y `vtex-app-token`: son la appKey/appToken de una integración
+de la cuenta `lindoqa` con permiso sobre el workspace. El mismo par ya vive en el `.env` de
+Strapi como `VTEX_APP_KEY`/`VTEX_APP_TOKEN`.
+
+Un paso que se olvida fácil:
 
 > En Jenkins, el `cron` de un job Pipeline **se registra recién después del primer build
 > manual**, porque hasta entonces Jenkins no evaluó el bloque `triggers`. Después de crear
@@ -401,7 +437,9 @@ Sin tests de integración contra GitHub ni Strapi reales.
 | Reescribir `routes.json` borra rutas escritas a mano en el theme | Hoy no existen. Documentado como asunción; si aparecen, acotar la reescritura al prefijo `store.custom#`. |
 | Un CMS vacío o mal respondido borra todo el contenido custom | Las queries que fallan abortan sin commitear. Pero un Strapi que responde `{ customPages: [] }` legítimamente sí vacía el theme — es el comportamiento pedido. El primer run manual es la oportunidad de verificarlo. |
 | El timeout de 60s aplica también a `/_v/deploy` | Es un techo, no una demora. Impacto: un request colgado ocupa un worker 60s. |
-| Dos reconciliaciones concurrentes | `rateLimitPerReplica: { concurrent: 1 }` en la ruta. |
+| Dos reconciliaciones concurrentes | `rateLimitPerReplica: { concurrent: 1 }` reduce la ventana, pero es por réplica y `minReplicas` es 2, así que no la elimina. La que pierde la carrera falla en el `updateRef` (sin `force`) y responde 500: una corrida fallida, no un repo corrupto. |
+| El endpoint es destructivo | **Cerrado** (2026-09-21): la ruta pasó a `public: false` con una policy que solo habilita a las appKeys de `lindoqa`, y Jenkins llama con `X-VTEX-API-AppToken`. Ya no alcanza con conocer la URL del workspace. `/_v/deploy` sigue público a propósito: solo agrega contenido, y cerrarlo obligaría a tocar el job que ya corre en producción. |
+| El token de la appKey vive en Jenkins | Credencial de tipo *secret text*, inyectada con `withCredentials` y enmascarada en los headers. Quien tenga acceso al job puede accionar el reconcile — es el mismo nivel de confianza que ya tiene el job de deploy. |
 
 ## Trabajo futuro (fuera de este spec)
 
@@ -436,6 +474,10 @@ que aparece el drift que este endpoint corrige.
 
 Detalle que no estaba documentado y que este diseño aprovecha: **`variables` es opcional**.
 `CustomPageStrategy` lo pasa tal cual al client, y el `$filters` de `CUSTOM_PAGE_QUERY` es
-nullable, así que un `{"section":"custom-page"}` sin `variables` trae todas las páginas.
-Strapi nunca emite ese payload —siempre filtra por slug—, pero es el mecanismo sobre el que
-se apoya el paso 2 del flujo de reconcile.
+nullable, así que un `{"section":"custom-page"}` sin `variables` no filtra por slug. Que
+además traiga **todas** las páginas depende de que la query tenga paginación explícita sin
+límite práctico —agregada en este mismo cambio—: sin ella, el default de Strapi corta en 10
+(el plugin de GraphQL no define `defaultLimit` y cae al de `@strapi/utils`; el
+`defaultLimit: 25` de `config/api.ts` es de `rest`, no de GraphQL). Strapi nunca emite ese
+payload —siempre filtra por slug—, pero es el mecanismo sobre el que se apoya el paso 2 del
+flujo de reconcile.

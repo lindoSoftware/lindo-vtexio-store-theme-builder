@@ -1,6 +1,7 @@
 import type { CustomPagesData } from '../typings/custompage-response'
 import { BlockNameHelper } from '../utils/BlockNameHelper'
 import { initGitHubClient } from '../utils/github.helper'
+import { normalizeRepoPath } from '../utils/normalizeRepoPath'
 import env from '../env'
 
 type Routes = Record<string, { path: string }>
@@ -110,9 +111,8 @@ export class CustomPageRemovalService {
    * + el slug como nombre de archivo.
    */
   private static pageFilePath(slug: string, routePath: string): string {
-    return `${env.CUSTOM_PAGE_PATH}/${routePath}/${slug}.jsonc`.replace(
-      /\/+/g,
-      '/'
+    return normalizeRepoPath(
+      `${env.CUSTOM_PAGE_PATH}/${routePath}/${slug}.jsonc`
     )
   }
 }

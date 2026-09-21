@@ -104,9 +104,25 @@ query Links {
 }
 `
 
+// `pagination` es explícita a propósito: sin ella, Strapi aplica su default de
+// 10 resultados (el plugin de GraphQL no define `defaultLimit`, así que cae al
+// `STRAPI_DEFAULTS.offset.limit` de `@strapi/utils`; el `defaultLimit: 25` de
+// `config/api.ts` es de `rest` y la query GraphQL nunca lo lee). Un `$filters`
+// nulo (todas las páginas, ver `ReconcileContentService`) por sí solo NO
+// alcanza para traerlas todas si son más de 10.
+//
+// `limit: -1` no sirve como "sin límite" acá, aunque el `maxLimit: -1` del
+// plugin sugiera lo contrario: se verificó que ese -1 llega intacto hasta la
+// query engine y de ahí a la cláusula SQL `LIMIT` (con este proyecto en MySQL,
+// vía knex + mysql2). El truco de "-1 = sin límite" es una idiosincrasia de
+// SQLite que el compilador de knex para MySQL no replica; ahí un `LIMIT`
+// negativo es simplemente inválido. Por eso se usa el entero más grande que
+// el scalar `Int` de GraphQL admite (2^31 - 1) como techo seguro: muy por
+// debajo de lo que MySQL acepta en `LIMIT`, y muy por arriba de cualquier
+// cantidad real de custom pages.
 export const CUSTOM_PAGE_QUERY = `
 query CustomPages($filters: CustomPageFiltersInput) {
-  customPages(filters: $filters) {
+  customPages(filters: $filters, pagination: { limit: 2147483647 }) {
     slug
     path
     title

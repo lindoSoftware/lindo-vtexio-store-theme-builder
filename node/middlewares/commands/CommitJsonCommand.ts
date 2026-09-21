@@ -1,6 +1,7 @@
 import { Command } from '../../typings/command'
 import type { SectionDataMap } from '../../typings/sections-map'
 import { initGitHubClient } from '../../utils/github.helper'
+import { normalizeRepoPath } from '../../utils/normalizeRepoPath'
 import env from '../../env'
 import type { CustomPageRemoval } from '../../services/CustomPageRemovalService'
 import type { GeneratedFile } from './BuildJsonCommand'
@@ -90,7 +91,7 @@ export class CommitJsonCommand<
    * Crea o actualiza un archivo en GitHub
    */
   private async commitFile(file: GeneratedFile): Promise<void> {
-    const filePath = `${file.path}/${file.filename}`.replace(/\/+/g, '/')
+    const filePath = normalizeRepoPath(`${file.path}/${file.filename}`)
 
     this.ctx.vtex.logger.info({
       message: `[CommitJsonCommand] Syncing file: ${filePath}`,

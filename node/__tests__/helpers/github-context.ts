@@ -3,6 +3,8 @@
  * comandos y del middleware de deploy.
  */
 
+import { gitBlobSha } from '../../utils/gitBlobSha'
+
 /** Forma de la respuesta de `GitHubClient.getFileContent`. */
 export interface GithubFile {
   exists: boolean
@@ -16,6 +18,7 @@ export interface GithubMock {
   createOrUpdateFile: jest.Mock
   commitFiles: jest.Mock
   deleteFile: jest.Mock
+  listFiles: jest.Mock
 }
 
 /** Cambios de una llamada a `commitFiles`. */
@@ -44,6 +47,15 @@ export function buildGithubCtx(repo: Record<string, GithubFile> = {}): {
       .fn()
       .mockResolvedValue({ status: 200, data: { action: 'committed' } }),
     deleteFile: jest.fn().mockResolvedValue({ status: 200, data: '' }),
+    listFiles: jest.fn(async (prefix: string) => ({
+      files: Object.entries(repo)
+        .filter(([path, file]) => file.exists && path.startsWith(prefix))
+        .map(([path, file]) => ({
+          path,
+          sha: file.sha ?? gitBlobSha(file.content ?? ''),
+        })),
+      truncated: false,
+    })),
   }
 
   const ctx = {
@@ -65,6 +77,15 @@ export function buildGithubCtx(repo: Record<string, GithubFile> = {}): {
 /** Un archivo presente en el repo, con contenido JSON. */
 export function jsonFile(content: unknown, sha = 'sha'): GithubFile {
   return { exists: true, sha, content: JSON.stringify(content) }
+}
+
+/**
+ * Un archivo del repo cuyo `sha` es el real de su contenido. `jsonFile` usa un
+ * sha de fantasía, que alcanza para los tests que solo leen contenido pero no
+ * para los que comparan si un archivo cambió.
+ */
+export function trackedFile(content: string): GithubFile {
+  return { exists: true, sha: gitBlobSha(content), content }
 }
 
 /** Los commits atómicos que hizo el deploy, en orden. */

@@ -32,7 +32,16 @@ export interface GithubCommit {
  * @param repo Contenido del repo indexado por path. Un path que no esté ahí se
  * resuelve como inexistente.
  */
-export function buildGithubCtx(repo: Record<string, GithubFile> = {}): {
+/** Secreto que el ctx de test manda y que los settings mockeados esperan. */
+export const TEST_RECONCILE_TOKEN = 'token-de-test'
+
+export function buildGithubCtx(
+  repo: Record<string, GithubFile> = {},
+  /** Headers del request. Por defecto, los de un reconcile autorizado. */
+  headers: Record<string, string> = {
+    'x-reconcile-token': TEST_RECONCILE_TOKEN,
+  }
+): {
   ctx: Context
   github: GithubMock
 } {
@@ -65,10 +74,13 @@ export function buildGithubCtx(repo: Record<string, GithubFile> = {}): {
         getAppSettings: jest.fn().mockResolvedValue({
           githubToken: 'token',
           githubBranchName: 'staging',
+          reconcileToken: TEST_RECONCILE_TOKEN,
         }),
       },
     },
     vtex: { logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() } },
+    // Koa normaliza el nombre a minúsculas; `ctx.get` es case-insensitive.
+    get: (field: string) => headers[field.toLowerCase()] ?? '',
   }
 
   return { ctx: ctx as unknown as Context, github }

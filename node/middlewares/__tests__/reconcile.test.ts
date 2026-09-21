@@ -3,6 +3,7 @@ import { StrapiConfigService } from '../../services/StrapiConfigService'
 import {
   buildGithubCtx,
   trackedFile,
+  TEST_RECONCILE_TOKEN,
 } from '../../__tests__/helpers/github-context'
 
 // Va con factory y NO con `jest.spyOn`: spyOn carga el módulo real, que importa
@@ -55,6 +56,58 @@ beforeEach(() => {
 
 afterEach(() => {
   strapi.mockRestore()
+})
+
+describe('reconcile — autorización', () => {
+  const repo = { [ROUTES]: trackedFile(routesConSucursales) }
+
+  it.each([
+    ['sin el header', {}],
+    ['con un token incorrecto', { 'x-reconcile-token': 'otra-cosa' }],
+    ['con el token vacío', { 'x-reconcile-token': '' }],
+  ])('responde 401 y no toca nada %s', async (_caso, headers) => {
+    const { ctx, github } = buildGithubCtx(repo, headers)
+
+    await reconcile(ctx, noop)
+
+    expect(ctx.status).toBe(401)
+    expect(ctx.body).toEqual({ success: false, error: 'Unauthorized' })
+
+    // Lo que importa del rechazo: no se consultó el CMS ni se tocó GitHub.
+    expect(mockBuild).not.toHaveBeenCalled()
+    expect(github.listFiles).not.toHaveBeenCalled()
+    expect(github.commitFiles).not.toHaveBeenCalled()
+  })
+
+  it('falla cerrado si el setting no está configurado', async () => {
+    const { ctx, github } = buildGithubCtx(repo)
+
+    // El token viaja bien; es el servicio el que no tiene contra qué compararlo.
+    ;(ctx.clients.apps.getAppSettings as jest.Mock).mockResolvedValue({
+      githubToken: 'token',
+      githubBranchName: 'staging',
+    })
+
+    await reconcile(ctx, noop)
+
+    expect(ctx.status).toBe(401)
+    expect(github.commitFiles).not.toHaveBeenCalled()
+    expect(ctx.vtex.logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('reconcileToken'),
+      })
+    )
+  })
+
+  it('deja pasar el request con el token correcto', async () => {
+    const { ctx } = buildGithubCtx(repo, {
+      'x-reconcile-token': TEST_RECONCILE_TOKEN,
+    })
+
+    await reconcile(ctx, noop)
+
+    expect(ctx.status).toBe(200)
+  })
 })
 
 describe('reconcile', () => {

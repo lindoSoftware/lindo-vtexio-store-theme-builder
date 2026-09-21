@@ -13,15 +13,8 @@
     },
     "reconcile": {
       "path": "/_v/reconcile",
-      "public": false,
+      "public": true,
       "method": "POST",
-      "policies": [
-        {
-          "effect": "allow",
-          "actions": ["post"],
-          "principals": ["vrn:vtex.vtex-id:*:*:*:user/vtexappkey-lindoqa-*"]
-        }
-      ],
       "rateLimitPerReplica": {
         "concurrent": 1
       }

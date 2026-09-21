@@ -239,40 +239,51 @@ trigger no corrió.
 
 **Body:** `{}` (o ausente). Cualquier campo que llegue se ignora.
 
-**Requiere autenticación**, a diferencia de `/_v/deploy`. La ruta es `public: false` y
-expone una *resource-based policy* en `node/service.json` que habilita a las appKeys de la
-cuenta:
-
-```json
-"policies": [{
-  "effect": "allow",
-  "actions": ["post"],
-  "principals": ["vrn:vtex.vtex-id:*:*:*:user/vtexappkey-lindoqa-*"]
-}]
-```
-
-Quien llame manda el par de headers de integración de VTEX:
+**Requiere autenticación**, a diferencia de `/_v/deploy`. El request tiene que traer el
+header `X-Reconcile-Token` con el valor del setting `reconcileToken` de la app:
 
 ```sh
 curl -X POST https://staging--lindoqa.myvtex.com/_v/reconcile \
   -H 'Content-Type: application/json' \
-  -H "X-VTEX-API-AppKey: $VTEX_APP_KEY" \
-  -H "X-VTEX-API-AppToken: $VTEX_APP_TOKEN" \
+  -H "X-Reconcile-Token: $RECONCILE_TOKEN" \
   -d '{}'
 ```
 
-La política **no es opcional**: en VTEX IO una ruta privada sin `policies` no la puede
-llamar nadie, ni siquiera un admin de la cuenta. Y como el rechazo ocurre en el borde,
-antes del handler, un 401/403 devuelve el error de la plataforma y no el
-`{success:false}` de este servicio.
+Sin el header, con un valor incorrecto, o **con el setting sin configurar**, responde `401`
+con `{"success": false, "error": "Unauthorized"}` y no lee el CMS ni toca GitHub. El último
+caso es a propósito: falla cerrado, para que un descuido de configuración no deje abierto un
+endpoint que borra archivos.
 
-El wildcard cubre cualquier appKey de `lindoqa`. Para restringirlo a una sola integración,
-reemplazar `vtexappkey-lindoqa-*` por la appKey completa. Para habilitar además a personas,
-agregar un principal `user/{email}` — por defecto los usuarios tampoco entran.
+La comparación es en tiempo constante sobre el SHA-256 de cada lado, porque
+`timingSafeEqual` tira si los buffers miden distinto y esa excepción filtraría el largo del
+secreto.
 
-`/_v/deploy` sigue siendo público: lo llama la misma pipe, pero solo agrega contenido y
-cerrarlo obligaría a tocar el job que ya está en producción. La asimetría es deliberada —
-reconcile es el único endpoint que **borra**.
+### Por qué el control de acceso está en el handler y no en la plataforma
+
+VTEX tiene un mecanismo propio —`public: false` más una *resource-based policy*—, y es más
+fuerte, porque rechaza en el borde sin que corra código nuestro. No se usa acá por una razón
+concreta: **`public: true` es lo que hace que una ruta se publique en el dominio de la
+tienda.** Al pasarla a privada, la ruta desaparece de `staging--lindoqa.myvtex.com` y queda
+solo en el gateway interno:
+
+```
+Available service routes:
+https://staging--lindoqa.myvtex.com/_v/deploy
+https://app.io.vtex.com/lindo.store-theme-builder/v0/lindoqa/staging/_v/reconcile
+```
+
+Y ese gateway no acepta el par `X-VTEX-API-AppKey`/`AppToken` —eso lo entiende el edge de
+comercio, no el router de IO—: responde `Unauthorized ... source: Vtex.Kube.Router`. Habría
+que cambiar antes appKey/appToken por un token de VTEX ID contra
+`vtexid.vtex.com.br/api/vtexid/apptoken/login`, o sea dos llamadas en un job nocturno, y con
+una URL que lleva adentro la cuenta y el workspace.
+
+Se eligió el secreto compartido: una sola llamada, URL estable, y el
+`rateLimitPerReplica: { concurrent: 1 }` sigue acotando el abuso. El costo es que la ruta
+sigue siendo alcanzable y el rechazo es responsabilidad de este código, no de VTEX.
+
+`/_v/deploy` no lleva token: solo agrega contenido, y sumarle uno obligaría a tocar el job
+que ya corre en producción.
 
 **Respuesta OK (200)**
 

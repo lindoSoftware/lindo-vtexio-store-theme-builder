@@ -51,6 +51,11 @@
         "title": "Strapi API Token",
         "description": "Read-only API Token de Strapi (Settings > API Tokens). Opcional: si se deja vacío las queries usan el rol Public.",
         "type": "string"
+      },
+      "reconcileToken": {
+        "title": "Reconcile Token",
+        "description": "Secreto compartido que habilita POST /_v/reconcile. Se manda en el header X-Reconcile-Token. Sin este valor el endpoint rechaza todo.",
+        "type": "string"
       }
     }
   }

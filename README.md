@@ -232,12 +232,47 @@ sin la página que se acababa de publicar. Por eso `CustomPageRemovalService` so
 
 ### `POST /_v/reconcile`
 
-Público, sin parámetros. Lee **todo** el CMS y deja el theme exactamente en ese estado, en
+Sin parámetros. Lee **todo** el CMS y deja el theme exactamente en ese estado, en
 un único commit. Corrige el drift que el deploy incremental acumula: rutas huérfanas de
 renames que perdieron su `previousSlug`, y secciones que se quedaron viejas porque su
 trigger no corrió.
 
 **Body:** `{}` (o ausente). Cualquier campo que llegue se ignora.
+
+**Requiere autenticación**, a diferencia de `/_v/deploy`. La ruta es `public: false` y
+expone una *resource-based policy* en `node/service.json` que habilita a las appKeys de la
+cuenta:
+
+```json
+"policies": [{
+  "effect": "allow",
+  "actions": ["post"],
+  "principals": ["vrn:vtex.vtex-id:*:*:*:user/vtexappkey-lindoqa-*"]
+}]
+```
+
+Quien llame manda el par de headers de integración de VTEX:
+
+```sh
+curl -X POST https://staging--lindoqa.myvtex.com/_v/reconcile \
+  -H 'Content-Type: application/json' \
+  -H "X-VTEX-API-AppKey: $VTEX_APP_KEY" \
+  -H "X-VTEX-API-AppToken: $VTEX_APP_TOKEN" \
+  -d '{}'
+```
+
+La política **no es opcional**: en VTEX IO una ruta privada sin `policies` no la puede
+llamar nadie, ni siquiera un admin de la cuenta. Y como el rechazo ocurre en el borde,
+antes del handler, un 401/403 devuelve el error de la plataforma y no el
+`{success:false}` de este servicio.
+
+El wildcard cubre cualquier appKey de `lindoqa`. Para restringirlo a una sola integración,
+reemplazar `vtexappkey-lindoqa-*` por la appKey completa. Para habilitar además a personas,
+agregar un principal `user/{email}` — por defecto los usuarios tampoco entran.
+
+`/_v/deploy` sigue siendo público: lo llama la misma pipe, pero solo agrega contenido y
+cerrarlo obligaría a tocar el job que ya está en producción. La asimetría es deliberada —
+reconcile es el único endpoint que **borra**.
 
 **Respuesta OK (200)**
 

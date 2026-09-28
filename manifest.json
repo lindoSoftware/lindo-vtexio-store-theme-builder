@@ -1,7 +1,7 @@
 {
   "name": "store-theme-builder",
   "vendor": "lindo",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "title": "Store Theme Builder",
   "description": "",
   "builders": {

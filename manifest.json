@@ -27,6 +27,15 @@
       }
     }
   ],
+  "billingOptions": {
+    "type": "free",
+    "support": {
+      "url": "https://lindo.la"
+    },
+    "availableCountries": [
+      "*"
+    ]
+  },
   "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema",
   "settingsSchema": {
     "title": "service settings",

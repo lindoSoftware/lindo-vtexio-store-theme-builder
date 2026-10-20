@@ -1,6 +1,11 @@
 import type { ClusterBlock } from '../../../../typings/homepage-response'
+import { CLUSTER_TYPES } from '../../../../utils/homepage-constants'
 import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
+
+// El theme depende de lindo.product-summary y de vtex.product-summary, y las dos declaran
+// list-context.product-list y product-summary.shelf: sin el prefijo el theme no compila.
+const PRODUCT_SUMMARY_APP = 'lindo.product-summary'
 
 export class ClusterBlockProcessor extends BlockProcessor<ClusterBlock> {
   private counter = 0
@@ -10,7 +15,7 @@ export class ClusterBlockProcessor extends BlockProcessor<ClusterBlock> {
 
     this.counter++
     const clusterRow = `flex-layout.row#cluster-${this.counter}`
-    const productList = `list-context.product-list#cluster-${this.counter}`
+    const productList = `${PRODUCT_SUMMARY_APP}:list-context.product-list#cluster-${this.counter}`
 
     this.addToHome(clusterRow)
 
@@ -24,7 +29,7 @@ export class ClusterBlockProcessor extends BlockProcessor<ClusterBlock> {
 
     this.createBlock(productList, {
       blockName: productList,
-      blocks: ['product-summary.shelf#cluster'],
+      blocks: [`${PRODUCT_SUMMARY_APP}:product-summary.shelf#cluster`],
       children: ['slider-layout#cluster'],
       props,
     })
@@ -33,7 +38,9 @@ export class ClusterBlockProcessor extends BlockProcessor<ClusterBlock> {
   private buildClusterProps(section: ClusterBlock): Record<string, any> {
     const props: Record<string, any> = {}
 
-    if (section.title?.trim() && section.typeNumber !== 2) {
+    // Una vitrina por categoría no lleva título de Strapi: muestra el nombre de la categoría.
+    // typeNumber es el número de la colección o de la categoría, no el tipo.
+    if (section.title?.trim() && section.type !== CLUSTER_TYPES.CATEGORY) {
       props.title = section.title
     }
 

@@ -6,6 +6,10 @@ import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
 
 export class MultipleStaticBannerProcessor extends BlockProcessor<MultipleStaticBannerBlock> {
+  // Numeración de toda la home: con dos componentes MultipleStaticBanner, el índice del grupo
+  // dentro de cada uno se repetía (static-banner-1) y el segundo pisaba al primero
+  private counter = 0
+
   public process(section: MultipleStaticBannerBlock): void {
     const validBanners = section.staticBanners.filter((b) =>
       isWithinDateRange(b.beginning, b.expiration)
@@ -13,8 +17,9 @@ export class MultipleStaticBannerProcessor extends BlockProcessor<MultipleStatic
 
     if (validBanners.length === 0) return
 
-    validBanners.forEach((bannerGroup, index) => {
-      this.processBannerGroup(bannerGroup, index + 1)
+    validBanners.forEach((bannerGroup) => {
+      this.counter++
+      this.processBannerGroup(bannerGroup, this.counter)
     })
   }
 
@@ -48,6 +53,8 @@ export class MultipleStaticBannerProcessor extends BlockProcessor<MultipleStatic
             url: b.link ?? '',
             openNewTab: false,
           },
+          // Texto alternativo de la imagen
+          ...(b.text ? { description: b.text } : {}),
         })),
       },
     })
@@ -55,9 +62,9 @@ export class MultipleStaticBannerProcessor extends BlockProcessor<MultipleStatic
     this.createBlock(sliderLayoutPropsRow, {
       blockName: sliderLayoutPropsRow,
       props: {
-        infinity: true,
+        infinite: true,
         showPaginationDots: 'never',
-        blockclass: `mh${bannerGroup.columnGap}-mv${bannerGroup.rowGap}`,
+        blockClass: `mh${bannerGroup.columnGap}-mv${bannerGroup.rowGap}`,
         itemsPerPage: {
           desktop: bannerGroup.banners.length,
           tablet: 1,

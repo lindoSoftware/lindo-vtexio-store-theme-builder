@@ -63,7 +63,7 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
     this.createBlock(sliderSelector, {
       blockName: sliderSelector,
       props: {
-        infinity: true,
+        infinite: true,
         showPaginationDots: 'never',
         itemsPerPage: {
           desktop: selector.itemsPerPageDesktop,

@@ -6,6 +6,13 @@ import type {
 import { isWithinDateRange } from '../../../../utils/isWithinDateRange'
 import { BlockProcessor } from './BlockProcessor'
 
+// Home del celular (card 618, propuesta 4): con el primer slider de categorías van la tira de
+// Ofertas antes y la grilla de categorías (lindo.category-grid) después. El Builder solo los ubica:
+// se definen en el theme (store/blocks/pages/home/home-mobile.jsonc), que no se regenera, y el
+// theme muestra el slider en desktop y la tira y la grilla en el celular.
+export const MOBILE_OFFERS_STRIP = 'flex-layout.row#ofertas-strip'
+export const MOBILE_CATEGORY_GRID = 'category-grid#home'
+
 export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImageSelectorBlock> {
   public process(section: MultipleImageSelectorBlock): void {
     const validSelectors = section.imageSelectors.filter((s) =>
@@ -20,11 +27,17 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
   }
 
   private processSelector(selector: ImageSelector, index: number): void {
+    const isFirst = index === 1
+
+    if (isFirst) this.addToHome(MOBILE_OFFERS_STRIP)
+
     if (selector.title) {
       this.createTitleBlock(selector.title, index)
     }
 
     this.createSliderBlock(selector, index)
+
+    if (isFirst) this.addToHome(MOBILE_CATEGORY_GRID)
   }
 
   private createTitleBlock(title: string, index: number): void {

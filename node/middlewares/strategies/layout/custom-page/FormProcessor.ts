@@ -23,7 +23,13 @@ export class FormProcessor extends CustomPageBlockProcessor<ComponentSharedForm>
     // 1. Mapeo de inputs con blockClass
     Object.entries(schema.schema.properties).forEach(([key, details]) => {
       const isDropdown = !!(details.enum && details.enum.length > 0)
-      const blockType = isDropdown ? 'form-input.dropdown' : 'form-input.text'
+      // Un texto que admite más de una línea (ej. comentario de 500) va en un área de texto
+      const isLongText = !isDropdown && (details.maxLength ?? 0) > 100
+      const blockType = isDropdown
+        ? 'form-input.dropdown'
+        : isLongText
+        ? 'form-input.textarea'
+        : 'form-input.text'
       const inputBlockName = `${blockType}#${key}${suffix}`
 
       inputChildren.push(inputBlockName)

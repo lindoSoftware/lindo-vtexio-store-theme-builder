@@ -15,6 +15,9 @@ export class RichTextProcessor extends CustomPageBlockProcessor<ComponentSharedR
       blockName: richTextBlock,
       props: {
         text: section.text,
+        // Permite estilar el texto de las custom pages sin tocar los demás
+        // rich text de la tienda (vtex.rich-text.css del theme).
+        blockClass: 'custom-page-content',
       },
     })
   }

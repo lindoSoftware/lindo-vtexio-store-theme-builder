@@ -21,6 +21,8 @@ export class GroupCardProcessor extends CustomPageBlockProcessor<ComponentShared
             name: section.name,
             appName: 'CardGroup',
             cardGroupLayout: section.cardGroupLayout,
+            // lindo.payment-method lee `layout`: sin esto side_by_side nunca se aplica
+            layout: section.cardGroupLayout ?? 'full_width',
             cards: section.cards.map((card) => ({
               content: mapCardContent(card.content, this.strapiURL),
             })),

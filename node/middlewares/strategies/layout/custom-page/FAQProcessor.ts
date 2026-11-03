@@ -1,6 +1,10 @@
 import type { ComponentSharedFAQ } from '../../../../typings/custompage-response'
 import { CustomPageBlockProcessor } from './CustomPageBlockProcessor'
 
+// Clase para estilar la FAQ de las custom pages (vtex.disclosure-layout.css del
+// theme) sin tocar los acordeones del footer.
+const FAQ_BLOCK_CLASS = 'custom-page-faq'
+
 export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
   public process(
     section: ComponentSharedFAQ,
@@ -30,12 +34,29 @@ export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
     this.createBlock(rowBlock, {
       blockName: rowBlock,
       children: [colBlock],
+      props: { blockClass: FAQ_BLOCK_CLASS },
     })
 
     this.createBlock(colBlock, {
       blockName: colBlock,
       children: [faqGroupBlock],
     })
+
+    // Indicador + / – compartido por todos los items de la sección
+    const indicatorBlock = this.generateBlockName(
+      'disclosure-state-indicator',
+      `faq-${index}`
+    )
+
+    const plusIcon = this.generateBlockName('icon-plus', `faq-${index}`)
+    const minusIcon = this.generateBlockName('icon-minus', `faq-${index}`)
+
+    this.createBlock(indicatorBlock, {
+      blockName: indicatorBlock,
+      props: { Show: plusIcon, Hide: minusIcon },
+    })
+    this.createBlock(plusIcon, { blockName: plusIcon, props: { size: 12 } })
+    this.createBlock(minusIcon, { blockName: minusIcon, props: { size: 12 } })
 
     const disclosureChildren: string[] = []
 
@@ -72,8 +93,8 @@ export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
       // disclosure-trigger#faqX
       this.createBlock(triggerBlock, {
         blockName: triggerBlock,
-        children: [questionBlock],
-        props: { as: 'div' },
+        children: [questionBlock, indicatorBlock],
+        props: { as: 'div', blockClass: FAQ_BLOCK_CLASS },
       })
 
       // rich-text#qX (Pregunta)
@@ -81,6 +102,7 @@ export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
         blockName: questionBlock,
         props: {
           text: `**${faq.question}**`, // Formato negrita del jsonc
+          blockClass: 'custom-page-faq-question',
         },
       })
 
@@ -88,6 +110,7 @@ export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
       this.createBlock(contentBlock, {
         blockName: contentBlock,
         children: [answerBlock],
+        props: { blockClass: FAQ_BLOCK_CLASS },
       })
 
       // rich-text#aX (Respuesta)
@@ -95,6 +118,7 @@ export class FAQProcessor extends CustomPageBlockProcessor<ComponentSharedFAQ> {
         blockName: answerBlock,
         props: {
           text: faq.answer,
+          blockClass: 'custom-page-faq-answer',
         },
       })
     })

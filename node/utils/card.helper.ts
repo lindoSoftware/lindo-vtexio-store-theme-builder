@@ -10,8 +10,13 @@ export const mapCardContent = (content: any[], strapiURL: string) => {
         ...block,
         images: block.images.map((img: any) => ({
           ...img,
-          // Concatenamos la URL base si el path es relativo
-          url: img.url ? `${strapiURL}${img.url}` : null,
+          // Concatenamos la URL base solo si el path es relativo (/uploads/...):
+          // una URL absoluta (S3, CDN) se deja tal cual
+          url: img.url
+            ? /^https?:\/\//.test(img.url)
+              ? img.url
+              : `${strapiURL}${img.url}`
+            : null,
         })),
       }
     }

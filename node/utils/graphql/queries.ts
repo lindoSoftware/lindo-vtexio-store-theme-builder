@@ -214,6 +214,23 @@ query CustomPages($filters: CustomPageFiltersInput) {
         appName
         showMap
       }
+      ... on ComponentSharedSteps {
+        appName
+        steps {
+          icon {
+            url
+            alternativeText
+          }
+          title
+          text
+        }
+      }
+      ... on ComponentSharedVideo {
+        appName
+        url
+        title
+        description
+      }
     }
   }
 }

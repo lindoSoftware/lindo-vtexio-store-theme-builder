@@ -7,6 +7,8 @@ import { FormProcessor } from './FormProcessor'
 import { GroupCardProcessor } from './GroupCardProcessor'
 import { PaymentMethodsTabProcessor } from './PaymentMethodsTabProcessor'
 import { RichTextProcessor } from './RichTextProcessor'
+import { StepsProcessor } from './StepsProcessor'
+import { VideoProcessor } from './VideoProcessor'
 
 export class CustomPageBlockProcessorFactory {
   private processors: Map<string, CustomPageBlockProcessor<any>>
@@ -45,6 +47,14 @@ export class CustomPageBlockProcessorFactory {
       [
         CUSTOMPAGE_APPNAMES.BRANCH_SELECTOR,
         new BranchSelectorProcessor(layoutBuilder, pageSlug, strapiURL),
+      ],
+      [
+        CUSTOMPAGE_APPNAMES.STEPS,
+        new StepsProcessor(layoutBuilder, pageSlug, strapiURL),
+      ],
+      [
+        CUSTOMPAGE_APPNAMES.VIDEO,
+        new VideoProcessor(layoutBuilder, pageSlug, strapiURL),
       ],
     ])
   }

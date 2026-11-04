@@ -22,6 +22,8 @@ export type CustomPageContent =
   | ComponentSharedForm
   | ComponentSharedFAQ
   | ComponentSharedBranchSelector
+  | ComponentSharedSteps
+  | ComponentSharedVideo
 
 export interface ComponentSharedRichText {
   appName: string
@@ -112,4 +114,22 @@ export interface FAQItem {
 export interface ComponentSharedBranchSelector {
   appName: string
   showMap: boolean
+}
+
+export interface ComponentSharedSteps {
+  appName: string
+  steps: StepItem[]
+}
+
+export interface StepItem {
+  icon?: { url: string; alternativeText?: string | null } | null
+  title: string
+  text?: string | null
+}
+
+export interface ComponentSharedVideo {
+  appName: string
+  url: string
+  title?: string | null
+  description?: string | null
 }

@@ -6,4 +6,6 @@ export const CUSTOMPAGE_APPNAMES = {
   FORM: 'Form',
   FAQ: 'FAQ',
   BRANCH_SELECTOR: 'BranchSelector',
+  STEPS: 'Steps',
+  VIDEO: 'Video',
 } as const

@@ -16,6 +16,15 @@ describe('pageHeaderClass', () => {
     ).toEqual(['custom-page-subtitle', 'custom-page-wide'])
   })
 
+  it('agrega custom-page-wide si la página tiene pasos o video', () => {
+    expect(
+      pageHeaderClass('custom-page-title', [
+        { appName: 'Steps' },
+        { appName: 'Video' },
+      ])
+    ).toEqual(['custom-page-title', 'custom-page-wide'])
+  })
+
   it('tolera una página sin contenido', () => {
     expect(pageHeaderClass('custom-page-title', undefined)).toBe(
       'custom-page-title'

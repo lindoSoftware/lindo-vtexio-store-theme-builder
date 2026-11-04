@@ -3,6 +3,7 @@ import type { CustomPagesData } from '../../../typings/custompage-response'
 import type { GeneratedFile } from '../../commands/BuildJsonCommand'
 import { VtexLayoutBuilder } from '../layout/VtexLayoutBuilder'
 import { CustomPageBlockProcessorFactory } from '../layout/custom-page/CustomPageBlockProcessorFactory'
+import { pageHeaderClass } from '../layout/custom-page/pageHeaderClass'
 import { BlockNameHelper } from '../../../utils/BlockNameHelper'
 import env from '../../../env'
 
@@ -67,7 +68,7 @@ export class CustomPageBuildJsonStrategy
           blockName: titleRichText,
           props: {
             text: `# ${page.title}`,
-            blockClass: 'custom-page-title',
+            blockClass: pageHeaderClass('custom-page-title', page.content),
           },
         })
       }
@@ -92,7 +93,7 @@ export class CustomPageBuildJsonStrategy
           blockName: subtitleRichText,
           props: {
             text: page.subtitle,
-            blockClass: 'custom-page-subtitle',
+            blockClass: pageHeaderClass('custom-page-subtitle', page.content),
           },
         })
       }

@@ -91,6 +91,23 @@ describe('MultipleImageSelectorProcessor', () => {
     ])
   })
 
+  it('marca el primer slider y su título con blockClass categoriesSlider: el theme los oculta en el celular', () => {
+    const { builder, blocks } = createLayoutBuilder()
+
+    new MultipleImageSelectorProcessor(builder, '').process(
+      section([selector({ title: 'Categorías' }), selector({ title: 'Otro' })])
+    )
+
+    expect(blocks['flex-layout.row#image-selector-slider-1'].props).toEqual({
+      blockClass: 'categoriesSlider',
+    })
+    expect(blocks['flex-layout.row#image-selector-title-1'].props).toEqual({
+      blockClass: 'categoriesSlider',
+    })
+    expect(blocks['flex-layout.row#image-selector-slider-2'].props).toBeUndefined()
+    expect(blocks['flex-layout.row#image-selector-title-2'].props).toBeUndefined()
+  })
+
   it('sin sliders vigentes no agrega nada', () => {
     const { builder, home } = createLayoutBuilder()
 

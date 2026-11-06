@@ -12,6 +12,9 @@ import { BlockProcessor } from './BlockProcessor'
 // theme muestra el slider en desktop y la tira y la grilla en el celular.
 export const MOBILE_OFFERS_STRIP = 'flex-layout.row#ofertas-strip'
 export const MOBILE_CATEGORY_GRID = 'category-grid#home'
+// Clase de la fila del primer slider (y su título): el theme la oculta en el celular, donde la
+// reemplaza la grilla (vtex.flex-layout.css, .flexRow--categoriesSlider)
+export const DESKTOP_ONLY_CLASS = 'categoriesSlider'
 
 export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImageSelectorBlock> {
   public process(section: MultipleImageSelectorBlock): void {
@@ -31,16 +34,22 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
 
     if (isFirst) this.addToHome(MOBILE_OFFERS_STRIP)
 
+    const rowProps = isFirst ? { blockClass: DESKTOP_ONLY_CLASS } : undefined
+
     if (selector.title) {
-      this.createTitleBlock(selector.title, index)
+      this.createTitleBlock(selector.title, index, rowProps)
     }
 
-    this.createSliderBlock(selector, index)
+    this.createSliderBlock(selector, index, rowProps)
 
     if (isFirst) this.addToHome(MOBILE_CATEGORY_GRID)
   }
 
-  private createTitleBlock(title: string, index: number): void {
+  private createTitleBlock(
+    title: string,
+    index: number,
+    rowProps?: Record<string, string>
+  ): void {
     const titleBlock = `flex-layout.row#image-selector-title-${index}`
     const richTextSelector = `rich-text#image-selector-title-${index}`
 
@@ -49,6 +58,7 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
     this.createBlock(titleBlock, {
       blockName: titleBlock,
       children: [richTextSelector],
+      ...(rowProps && { props: rowProps }),
     })
 
     this.createBlock(richTextSelector, {
@@ -60,7 +70,11 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
     })
   }
 
-  private createSliderBlock(selector: ImageSelector, index: number): void {
+  private createSliderBlock(
+    selector: ImageSelector,
+    index: number,
+    rowProps?: Record<string, string>
+  ): void {
     const selectorRow = `flex-layout.row#image-selector-slider-${index}`
     const sliderSelector = `slider-layout#image-selector-${index}`
 
@@ -69,6 +83,7 @@ export class MultipleImageSelectorProcessor extends BlockProcessor<MultipleImage
     this.createBlock(selectorRow, {
       blockName: selectorRow,
       children: [sliderSelector],
+      ...(rowProps && { props: rowProps }),
     })
 
     const imageColumns = this.createImageColumns(selector.images)

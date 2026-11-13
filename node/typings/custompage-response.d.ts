@@ -79,6 +79,7 @@ export interface ComponentSharedForm {
   appName: string
   schema: {
     name: string
+    entity: string
     schema: JSONSchema
   }
 }

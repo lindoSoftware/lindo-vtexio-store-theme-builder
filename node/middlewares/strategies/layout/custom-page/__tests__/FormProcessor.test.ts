@@ -14,7 +14,8 @@ const properties = {
 function build(
   slug: string,
   schemaName: string,
-  props: Record<string, any> = properties
+  props: Record<string, any> = properties,
+  entity: string | undefined = 'forms'
 ) {
   const builder = new VtexLayoutBuilder()
   const pageKey = `store.custom#${slug}`
@@ -25,6 +26,7 @@ function build(
       appName: 'Form',
       schema: {
         name: schemaName,
+        entity: entity as string,
         schema: { type: 'object', properties: props },
       },
     },
@@ -91,5 +93,21 @@ describe('FormProcessor', () => {
     const shared = a.filter((name) => b.includes(name))
 
     expect(shared).toEqual([])
+  })
+
+  it('usa la entidad del schema en el bloque form', () => {
+    const layout = build('no-recibi-mi-pedido', 'sh_help', properties, 'help')
+
+    expect(layout['form#no-recibi-mi-pedido-form-sh_help-0'].props).toEqual({
+      entity: 'help',
+      schema: 'sh_help',
+      blockClass: 'custom-form-main',
+    })
+  })
+
+  it('falla si el schema no trae entidad', () => {
+    expect(() => build('no-recibi-mi-pedido', 'sh_help', properties, '')).toThrow(
+      new Error('Form schema sh_help has no entity')
+    )
   })
 })

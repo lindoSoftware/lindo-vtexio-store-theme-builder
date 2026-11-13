@@ -13,6 +13,11 @@ export class FormProcessor extends CustomPageBlockProcessor<ComponentSharedForm>
     index: number
   ): void {
     const { schema } = section
+
+    if (!schema.entity) {
+      throw new Error(`Form schema ${schema.name} has no entity`)
+    }
+
     // Los nombres llevan el slug de la página (generateBlockName): varias
     // páginas usan el mismo schema (las 5 de Ayuda con sh_help) y VTEX no
     // admite dos bloques con el mismo nombre en el theme.
@@ -124,7 +129,7 @@ export class FormProcessor extends CustomPageBlockProcessor<ComponentSharedForm>
     this.createBlock(formBlock, {
       blockName: formBlock,
       props: {
-        entity: 'forms',
+        entity: schema.entity,
         schema: schema.name,
         blockClass: 'custom-form-main',
       },

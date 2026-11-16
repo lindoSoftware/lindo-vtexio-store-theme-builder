@@ -15,7 +15,8 @@ function build(
   slug: string,
   schemaName: string,
   props: Record<string, any> = properties,
-  entity: string | undefined = 'forms'
+  entity: string | undefined = 'forms',
+  required?: string[]
 ) {
   const builder = new VtexLayoutBuilder()
   const pageKey = `store.custom#${slug}`
@@ -27,7 +28,7 @@ function build(
       schema: {
         name: schemaName,
         entity: entity as string,
-        schema: { type: 'object', properties: props },
+        schema: { type: 'object', properties: props, required },
       },
     },
     pageKey,
@@ -121,5 +122,45 @@ describe('FormProcessor', () => {
     expect(() => build('no-recibi-mi-pedido', 'sh_help', properties, '')).toThrow(
       new Error('Form schema sh_help has no entity')
     )
+  })
+
+  it('ordena los campos según required (MySQL desordena las claves del JSON)', () => {
+    // Strapi guarda el schema en una columna JSON de MySQL, que reordena las
+    // claves por largo y después alfabéticamente. `required` es un array y
+    // conserva el orden de MasterData. `extra` no es obligatorio: va al final.
+    const { subject, firstName, lastName, email, phone, comment } = properties
+    const mysqlOrder = {
+      email,
+      extra: { type: 'string', title: 'Extra' },
+      phone,
+      comment,
+      subject,
+      lastName,
+      firstName,
+    }
+
+    const layout = build('contactanos', 'sh_contact_us', mysqlOrder, 'forms', [
+      'subject',
+      'firstName',
+      'lastName',
+      'email',
+      'phone',
+      'comment',
+    ])
+
+    expect(layout['form#contactanos-form-sh_contact_us-0'].children).toEqual([
+      'form-input.dropdown#contactanos-subject-sh_contact_us-0',
+      'flex-layout.row#contactanos-form-row-2-sh_contact_us-0',
+      'flex-layout.row#contactanos-form-row-3-sh_contact_us-0',
+      'form-input.textarea#contactanos-comment-sh_contact_us-0',
+      'form-input.text#contactanos-extra-sh_contact_us-0',
+      'form-submit#contactanos-sh_contact_us-0',
+    ])
+    expect(
+      layout['flex-layout.row#contactanos-form-row-2-sh_contact_us-0'].children
+    ).toEqual([
+      'form-input.text#contactanos-firstName-sh_contact_us-0',
+      'form-input.text#contactanos-lastName-sh_contact_us-0',
+    ])
   })
 })

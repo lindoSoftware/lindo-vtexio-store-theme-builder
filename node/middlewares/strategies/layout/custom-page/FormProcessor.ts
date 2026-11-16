@@ -6,6 +6,26 @@ type InputType =
   | 'form-input.dropdown'
   | 'form-input.textarea'
 
+/**
+ * Campos del schema en el orden de MasterData. Strapi guarda el schema en una
+ * columna JSON de MySQL, que reordena las claves (por largo y después
+ * alfabéticamente); `required` es un array y conserva el orden. Los campos que
+ * no son obligatorios van al final, en el orden en que vienen.
+ */
+export const orderedFields = <T>(
+  properties: Record<string, T>,
+  required: string[] = []
+): Array<[string, T]> => {
+  const rank = (key: string) => {
+    const index = required.indexOf(key)
+
+    return index === -1 ? required.length : index
+  }
+
+  // sort es estable: los que no están en required quedan en su orden
+  return Object.entries(properties).sort(([a], [b]) => rank(a) - rank(b))
+}
+
 export class FormProcessor extends CustomPageBlockProcessor<ComponentSharedForm> {
   public process(
     section: ComponentSharedForm,
@@ -34,8 +54,11 @@ export class FormProcessor extends CustomPageBlockProcessor<ComponentSharedForm>
     )
     const submitBlock = this.generateBlockName('form-submit', suffix)
 
-    // 1. Un input por campo del schema, en el orden del schema
-    const inputs = Object.entries(schema.schema.properties).map(
+    // 1. Un input por campo del schema, en el orden de `required`
+    const inputs = orderedFields(
+      schema.schema.properties,
+      schema.schema.required
+    ).map(
       ([key, details]) => {
         const isDropdown = !!(details.enum && details.enum.length > 0)
         // Un texto que admite más de una línea (ej. comentario de 500) va en un área de texto

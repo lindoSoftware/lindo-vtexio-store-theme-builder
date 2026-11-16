@@ -118,7 +118,10 @@ export class FormProcessor extends CustomPageBlockProcessor<ComponentSharedForm>
     this.createBlock(successTextLink, {
       blockName: successTextLink,
       props: {
-        text: '**¡Formulario enviado exitosamente!** \n\n Nos pondremos en contacto a la brevedad.',
+        // Título + texto + link al inicio (card 641, mockup 7EWK6rEVaDjNHvCv3qF6yq · A);
+        // el theme lo estila con los handles de rich-text (custom-form-success-text).
+        text:
+          '### ¡Gracias por escribirnos!\n\nRecibimos tu mensaje y te vamos a responder a la brevedad.\n\n[Volver al inicio](/)',
         textAlignment: 'CENTER',
         textPosition: 'CENTER',
         blockClass: 'custom-form-success-text',

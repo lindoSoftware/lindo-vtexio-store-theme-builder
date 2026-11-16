@@ -95,6 +95,18 @@ describe('FormProcessor', () => {
     expect(shared).toEqual([])
   })
 
+  it('arma el mensaje de enviado con título, texto y link al inicio', () => {
+    const layout = build('contactanos', 'sh_contact_us', properties, 'contact_us')
+
+    expect(layout['rich-text#contactanos-form-success-sh_contact_us-0'].props).toEqual({
+      text:
+        '### ¡Gracias por escribirnos!\n\nRecibimos tu mensaje y te vamos a responder a la brevedad.\n\n[Volver al inicio](/)',
+      textAlignment: 'CENTER',
+      textPosition: 'CENTER',
+      blockClass: 'custom-form-success-text',
+    })
+  })
+
   it('usa la entidad del schema en el bloque form', () => {
     const layout = build('no-recibi-mi-pedido', 'sh_help', properties, 'help')
 

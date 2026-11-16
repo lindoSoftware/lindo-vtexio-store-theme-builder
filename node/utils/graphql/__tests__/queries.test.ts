@@ -19,4 +19,17 @@ describe('CUSTOM_PAGE_QUERY', () => {
     // SQLite. Si alguien lo reintroduce, este test tiene que fallar.
     expect(CUSTOM_PAGE_QUERY).not.toMatch(/limit:\s*-1/)
   })
+
+  it('pide el título del video con alias (videoTitle)', () => {
+    // Tab.title es String! y Video.title es String: en la misma unión GraphQL
+    // rechaza la query entera ("Fields \"title\" conflict…") y falla el
+    // deploy de TODAS las custom pages. Por eso el de Video va con alias.
+    const video = CUSTOM_PAGE_QUERY.match(
+      /\.\.\. on ComponentSharedVideo \{([^}]*)\}/
+    )
+
+    expect(video).not.toBeNull()
+    expect(video![1]).toMatch(/videoTitle:\s*title/)
+    expect(video![1]).not.toMatch(/^\s*title\s*$/m)
+  })
 })

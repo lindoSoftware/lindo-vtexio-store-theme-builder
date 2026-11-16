@@ -131,6 +131,7 @@ export interface StepItem {
 export interface ComponentSharedVideo {
   appName: string
   url: string
-  title?: string | null
+  /** `title` de Strapi, pedido con alias (ver CUSTOM_PAGE_QUERY) */
+  videoTitle?: string | null
   description?: string | null
 }

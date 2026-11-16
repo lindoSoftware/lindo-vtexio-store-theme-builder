@@ -228,7 +228,9 @@ query CustomPages($filters: CustomPageFiltersInput) {
       ... on ComponentSharedVideo {
         appName
         url
-        title
+        # Alias: Tab.title es String! y Video.title es String; sin él GraphQL
+        # rechaza la query entera por conflicto de tipos.
+        videoTitle: title
         description
       }
     }

@@ -32,7 +32,7 @@ describe('VideoProcessor', () => {
       {
         appName: 'Video',
         url: 'https://www.youtube.com/watch?v=UcpVUzRjXbw',
-        title,
+        videoTitle: title,
         description,
       },
       pageKey,

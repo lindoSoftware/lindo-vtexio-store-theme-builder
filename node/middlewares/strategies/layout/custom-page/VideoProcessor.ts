@@ -40,7 +40,7 @@ export class VideoProcessor extends CustomPageBlockProcessor<ComponentSharedVide
       blockName: iframeBlock,
       props: {
         src: embedUrl(section.url),
-        title: section.title ?? 'Video',
+        title: section.videoTitle ?? 'Video',
         allow: YOUTUBE_ALLOW,
         // vtex.iframe no tiene handle para el <iframe>: lo estiran clases de
         // tachyons dentro del contenedor 16:9 (vtex.iframe.css del theme)
@@ -58,7 +58,7 @@ export class VideoProcessor extends CustomPageBlockProcessor<ComponentSharedVide
     const children = [mediaBlock]
     const textChildren: string[] = []
 
-    if (section.title) {
+    if (section.videoTitle) {
       const titleBlock = this.generateBlockName(
         'rich-text',
         `video-title-${index}`
@@ -66,7 +66,7 @@ export class VideoProcessor extends CustomPageBlockProcessor<ComponentSharedVide
 
       this.createBlock(titleBlock, {
         blockName: titleBlock,
-        props: { text: section.title, blockClass: 'custom-page-video-title' },
+        props: { text: section.videoTitle, blockClass: 'custom-page-video-title' },
       })
       textChildren.push(titleBlock)
     }

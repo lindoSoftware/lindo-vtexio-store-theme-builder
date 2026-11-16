@@ -1,3 +1,6 @@
+// Las listas anidadas (banners, images, cards, faqs, steps, tabs, links…) llevan
+// `pagination` explícita por lo mismo que `customPages` (ver el comentario de
+// CUSTOM_PAGE_QUERY): sin ella Strapi corta en 10 sin avisar.
 export const HOME_PAGE_QUERY = `
   query HomePage {
     homePage {
@@ -5,7 +8,7 @@ export const HOME_PAGE_QUERY = `
         ... on ComponentSharedSlider {
           height
           preload
-          banners {
+          banners(pagination: { limit: 2147483647 }) {
             desktopImage {
               url
             }
@@ -28,13 +31,13 @@ export const HOME_PAGE_QUERY = `
         }
         ... on ComponentSharedMultipleStaticBanner {
           appName
-          staticBanners {
+          staticBanners(pagination: { limit: 2147483647 }) {
             name
             beginning
             expiration
             columnGap
             rowGap
-            banners {
+            banners(pagination: { limit: 2147483647 }) {
               image {
                 url
               }
@@ -48,7 +51,7 @@ export const HOME_PAGE_QUERY = `
         ... on ComponentSharedMultipleImageSelector {
           id
           appName
-          imageSelectors {
+          imageSelectors(pagination: { limit: 2147483647 }) {
             name
             title
             beginning
@@ -56,7 +59,7 @@ export const HOME_PAGE_QUERY = `
             itemsPerPageDesktop
             itemsPerPageTablet
             itemsPerPageMobile
-            images {
+            images(pagination: { limit: 2147483647 }) {
               link
               text
               image {
@@ -76,7 +79,7 @@ export const HOME_PAGE_QUERY = `
           enableRotation
           beginning
           expiration
-          images {
+          images(pagination: { limit: 2147483647 }) {
             link
             text
             image {
@@ -95,7 +98,7 @@ export const HOME_PAGE_QUERY = `
 export const NAVBAR_QUERY = `
 query Links {
   navbar {
-    links {
+    links(pagination: { limit: 2147483647 }) {
       text
       url
       icon
@@ -132,7 +135,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
         name
         appName
         cardGroupLayout
-        cards {
+        cards(pagination: { limit: 2147483647 }) {
           content {
             ... on ComponentSharedCardTextBlock {
               appName
@@ -141,7 +144,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
             }
             ... on ComponentSharedCardImageBlock {
               appName
-              images {
+              images(pagination: { limit: 2147483647 }) {
                 url
               }
             }
@@ -153,7 +156,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
         title
         icon
         tabLayout
-        cards {
+        cards(pagination: { limit: 2147483647 }) {
           content {
             ... on ComponentSharedCardTextBlock {
               appName
@@ -162,7 +165,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
             }
             ... on ComponentSharedCardImageBlock {
               appName
-              images {
+              images(pagination: { limit: 2147483647 }) {
                 url
               }
             }
@@ -173,12 +176,12 @@ query CustomPages($filters: CustomPageFiltersInput) {
         appName
         title
         icon
-        tabs {
+        tabs(pagination: { limit: 2147483647 }) {
           appName
           title
           icon
           tabLayout
-          cards {
+          cards(pagination: { limit: 2147483647 }) {
             content {
               ... on ComponentSharedCardTextBlock {
                 appName
@@ -187,7 +190,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
               }
               ... on ComponentSharedCardImageBlock {
                 appName
-                images {
+                images(pagination: { limit: 2147483647 }) {
                   url
                 }
               }
@@ -205,7 +208,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
       }
       ... on ComponentSharedFaq {
         appName
-        faqs {
+        faqs(pagination: { limit: 2147483647 }) {
           question
           answer
         }
@@ -216,7 +219,7 @@ query CustomPages($filters: CustomPageFiltersInput) {
       }
       ... on ComponentSharedSteps {
         appName
-        steps {
+        steps(pagination: { limit: 2147483647 }) {
           icon {
             url
             alternativeText
